@@ -58,6 +58,13 @@ public class TransferCommand extends SubCommand {
             return true;
         }
 
+        PlayerGuard inst = PlayerGuard.getInstance();
+
+        if (inst.getProtectionUsed(transferTo) + region.volume() > inst.getProtectLimit(transferTo)) {
+            sender.sendMessage(ChatColor.DARK_RED + "■ " + ChatColor.RED + "この相手に譲渡することはできません。");
+            return true;
+        }
+
         region.getOwners().clear();
         region.getMembers().clear();
         region.getOwners().addPlayer(transferTo.getUniqueId());

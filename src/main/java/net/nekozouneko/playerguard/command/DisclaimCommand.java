@@ -28,12 +28,31 @@ public class DisclaimCommand implements CommandExecutor, TabCompleter {
         Player p = (Player) sender;
         RegionContainer rc = WorldGuard.getInstance().getPlatform().getRegionContainer();
 
-        RegionManager rm = rc.get(BukkitAdapter.adapt(p.getWorld()));
+        RegionManager rm;
+        ProtectedRegion pr;
 
-        ProtectedRegion pr = PGUtil.getCurrentPositionRegion(p);
+        if (args.length == 0) {
+            rm = rc.get(BukkitAdapter.adapt(p.getWorld()));
+
+            pr = PGUtil.getCurrentPositionRegion(p);
+        }
+        else {
+            String id = args[0];
+
+            rm = null;
+            pr = null;
+
+            for (RegionManager rem : rc.getLoaded()) {
+                if (rem.getRegion(id) != null) {
+                    rm = rem;
+                    pr = rem.getRegion(id);
+                    break;
+                }
+            }
+        }
 
         if (pr == null || !pr.getOwners().contains(p.getUniqueId())) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"ここにはあなたが削除できる保護領域がありません。");
+            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"ここにはあなたが削除できる保護領域がないか、その保護領域が存在しません。");
             return true;
         }
 
@@ -42,10 +61,12 @@ public class DisclaimCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        final RegionManager manager = rm;
+        final ProtectedRegion region = pr;
         ConfirmCommand.addConfirm(p.getUniqueId(), () -> {
-            rm.removeRegion(pr.getId());
+            manager.removeRegion(region.getId());
 
-            sender.sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "保護領域「%s」を削除しました。", pr.getId()));
+            sender.sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "保護領域「%s」を削除しました。", region.getId()));
         });
         sender.sendMessage(ChatColor.GOLD + "■ " + ChatColor.YELLOW + "削除するには/playerguard confirmを実行してください。");
 
