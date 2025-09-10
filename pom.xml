@@ -6,7 +6,7 @@
 
     <groupId>net.nekozouneko</groupId>
     <artifactId>playerguard</artifactId>
-    <version>1.4</version>
+    <version>1.4.1</version>
     <packaging>jar</packaging>
 
     <name>PlayerGuard</name>
