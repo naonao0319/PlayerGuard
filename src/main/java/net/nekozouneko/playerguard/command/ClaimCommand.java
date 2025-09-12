@@ -101,17 +101,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         long minDistance = Long.MAX_VALUE;
         for (ProtectedRegion otherRegion : rm.getRegions().values()) {
             if (otherRegion.getFlag(PlayerGuard.getGuardRegisteredFlag()) != StateFlag.State.ALLOW) continue;
-            Bukkit.broadcastMessage("1");
             if (!PGConfig.doApplyToSamePlayerSRegion() && otherRegion.getOwners().contains(p.getUniqueId())) continue;
-            Bukkit.broadcastMessage("2");
 
             long d = PGUtil.distanceBetweenRegions(protect, otherRegion);
-            Bukkit.broadcastMessage("3: " + d);
             if (d < 0) continue;
             minDistance = Math.min(minDistance, d);
         }
-
-        Bukkit.broadcastMessage("minDist: " + minDistance);
 
         if (minDistance <= PGConfig.getMinSpacingBetweenRegions()) {
             sender.sendMessage(String.format(ChatColor.DARK_RED+"■ "+ChatColor.RED+"領域が他の領域と近いです。(%d)", minDistance));
