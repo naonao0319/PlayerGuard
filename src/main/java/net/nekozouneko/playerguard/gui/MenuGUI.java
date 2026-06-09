@@ -35,7 +35,12 @@ public class MenuGUI extends AbstractGUI{
     @Override
     public void init() {
         GuardFlags[] values = GuardFlags.values();
-        int size = Math.min(54, ((values.length / 9) + 1) * 9);
+
+        int maxRow = 1;
+        for (GuardFlags gf : values) {
+            maxRow = Math.max(maxRow, gf.getGuiRow());
+        }
+        int size = Math.min(54, maxRow * 9);
 
         if (inventory == null)
             inventory = Bukkit.createInventory(this, size, "■ 権限を管理");
@@ -43,14 +48,18 @@ public class MenuGUI extends AbstractGUI{
 
         NamespacedKey key = new NamespacedKey(PlayerGuard.getInstance(), "flag");
 
-        for (int i = 0; i < values.length; i++) {
-            GuardFlags gf = values[i];
+        // 各フラグを guiRow で指定された行に左詰めで配置する
+        int[] column = new int[maxRow + 1];
+        for (GuardFlags gf : values) {
+            int slot = (gf.getGuiRow() - 1) * 9 + column[gf.getGuiRow()]++;
+            if (slot < 0 || slot >= size) continue;
+
             ItemStack item = ItemStackBuilder.of(gf.getIcon())
                     .name(ChatColor.WHITE + gf.getDisplayName())
                     .lore(ChatColor.GRAY + "状態："+stateToJapanese(GuardFlags.getState(region, gf)))
                     .persistentData(key, new EnumDataType<>(GuardFlags.class), gf)
                     .build();
-            inventory.setItem(i, item);
+            inventory.setItem(slot, item);
         }
 
         if (getParent() != null) {
