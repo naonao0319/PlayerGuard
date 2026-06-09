@@ -64,7 +64,7 @@ public class MenuGUI extends AbstractGUI{
 
         if (getParent() != null) {
             inventory.setItem(size - 1, ItemStackBuilder.of(Material.ARROW)
-                    .name(ChatColor.WHITE + "← 戻る")
+                    .name(ChatColor.WHITE + "戻る")
                     .build());
         }
     }

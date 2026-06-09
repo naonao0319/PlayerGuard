@@ -59,7 +59,7 @@ public class PlayerSelectGUI extends AbstractGUI {
         }
 
         inventory.setItem(size - 1, ItemStackBuilder.of(Material.ARROW)
-                .name(ChatColor.WHITE + "← 戻る")
+                .name(ChatColor.WHITE + "戻る")
                 .build());
     }
 

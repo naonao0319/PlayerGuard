@@ -59,11 +59,11 @@ public class MemberGUI extends AbstractGUI {
         }
 
         inventory.setItem(SLOT_ADD, ItemStackBuilder.of(Material.LIME_DYE)
-                .name(ChatColor.GREEN + "＋ メンバーを追加").build());
+                .name(ChatColor.GREEN + "メンバーを追加").build());
         inventory.setItem(SLOT_TRANSFER, ItemStackBuilder.of(Material.GOLDEN_APPLE)
-                .name(ChatColor.GOLD + "⇄ 領域を譲渡").build());
+                .name(ChatColor.GOLD + "領域を譲渡").build());
         inventory.setItem(SLOT_BACK, ItemStackBuilder.of(Material.ARROW)
-                .name(ChatColor.WHITE + "← 戻る").build());
+                .name(ChatColor.WHITE + "戻る").build());
     }
 
     @EventHandler

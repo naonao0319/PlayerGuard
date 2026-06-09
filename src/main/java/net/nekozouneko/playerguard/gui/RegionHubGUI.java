@@ -34,21 +34,21 @@ public class RegionHubGUI extends AbstractGUI {
         inventory.clear();
 
         inventory.setItem(SLOT_FLAGS, ItemStackBuilder.of(Material.REDSTONE_TORCH)
-                .name(ChatColor.WHITE + "🚩 フラグ設定").build());
+                .name(ChatColor.WHITE + "フラグ設定").build());
         inventory.setItem(SLOT_MEMBERS, ItemStackBuilder.of(Material.PLAYER_HEAD)
-                .name(ChatColor.WHITE + "👥 メンバー管理").build());
+                .name(ChatColor.WHITE + "メンバー管理").build());
         inventory.setItem(SLOT_INFO, ItemStackBuilder.of(Material.PAPER)
-                .name(ChatColor.WHITE + "ℹ 領域情報")
+                .name(ChatColor.WHITE + "領域情報")
                 .lore(
                         ChatColor.GRAY + "ID: " + ChatColor.WHITE + region.getId(),
-                        ChatColor.GRAY + "範囲: " + ChatColor.WHITE + String.format("(%d, %d, %d) → (%d, %d, %d)",
+                        ChatColor.GRAY + "範囲: " + ChatColor.WHITE + String.format("(%d, %d, %d) -> (%d, %d, %d)",
                                 region.getMinimumPoint().x(), region.getMinimumPoint().y(), region.getMinimumPoint().z(),
                                 region.getMaximumPoint().x(), region.getMaximumPoint().y(), region.getMaximumPoint().z()),
                         ChatColor.GRAY + "オーナー数: " + ChatColor.WHITE + region.getOwners().size(),
                         ChatColor.GRAY + "メンバー数: " + ChatColor.WHITE + region.getMembers().size()
                 ).build());
         inventory.setItem(SLOT_CLOSE, ItemStackBuilder.of(Material.BARRIER)
-                .name(ChatColor.RED + "✖ 閉じる").build());
+                .name(ChatColor.RED + "閉じる").build());
     }
 
     @EventHandler
