@@ -53,4 +53,12 @@ class SubCommandManagerTest {
         m.register("remove", new DummySub(), "rm", "del");
         assertTrue(m.getCommandNamesAndAliases().containsAll(List.of("remove", "rm", "del")));
     }
+
+    @Test
+    void rejectsAliasCollidingWithExistingAlias() {
+        SubCommandManager m = new SubCommandManager();
+        m.register("remove", new DummySub(), "rm");
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> m.register("delete", new DummySub(), "rm"));
+    }
 }

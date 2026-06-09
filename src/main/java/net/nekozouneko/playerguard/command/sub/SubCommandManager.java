@@ -11,6 +11,10 @@ public class SubCommandManager {
     public void register(String name, SubCommand command, String... aliases) {
         commands.put(name, command);
         for (String alias : aliases) {
+            if (commands.containsKey(alias) || this.aliases.containsKey(alias)) {
+                throw new IllegalArgumentException(
+                        "Alias '" + alias + "' conflicts with an existing command or alias");
+            }
             this.aliases.put(alias, name);
         }
     }
