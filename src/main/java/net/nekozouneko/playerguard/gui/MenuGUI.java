@@ -34,58 +34,27 @@ public class MenuGUI extends AbstractGUI{
 
     @Override
     public void init() {
+        GuardFlags[] values = GuardFlags.values();
+        int size = Math.min(54, ((values.length / 9) + 1) * 9);
+
         if (inventory == null)
-            inventory = Bukkit.createInventory(this, 9, "■ 権限を管理");
+            inventory = Bukkit.createInventory(this, size, "■ 権限を管理");
         inventory.clear();
 
         NamespacedKey key = new NamespacedKey(PlayerGuard.getInstance(), "flag");
 
-        ItemStack breakFlag = ItemStackBuilder.of(Material.IRON_PICKAXE)
-                .name(ChatColor.WHITE + "ブロックの破壊")
-                .lore(ChatColor.GRAY + "状態："+stateToJapanese(GuardFlags.getState(region, GuardFlags.BREAK)))
-                .persistentData(key, new EnumDataType<>(GuardFlags.class), GuardFlags.BREAK)
-                .build();
-        ItemStack placeFlag = ItemStackBuilder.of(Material.CRAFTING_TABLE)
-                .name(ChatColor.WHITE + "ブロックの設置")
-                .lore(ChatColor.GRAY + "状態："+stateToJapanese(GuardFlags.getState(region, GuardFlags.PLACE)))
-                .persistentData(key, new EnumDataType<>(GuardFlags.class), GuardFlags.PLACE)
-                .build();
-        ItemStack interactFlag = ItemStackBuilder.of(Material.REDSTONE)
-                .name(ChatColor.WHITE + "アイテムの使用、チェストを開く")
-                .lore(ChatColor.GRAY + "状態："+stateToJapanese(GuardFlags.getState(region, GuardFlags.INTERACT)))
-                .persistentData(key, new EnumDataType<>(GuardFlags.class), GuardFlags.INTERACT)
-                .build();
-        ItemStack pvpFlag = ItemStackBuilder.of(Material.IRON_SWORD)
-                .name(ChatColor.WHITE + "PvP (プレイヤー同士のダメージ)")
-                .lore(ChatColor.GRAY + "状態："+stateToJapanese(GuardFlags.getState(region, GuardFlags.PVP)))
-                .persistentData(key, new EnumDataType<>(GuardFlags.class), GuardFlags.PVP)
-                .build();
-        ItemStack entityAttackFlag = ItemStackBuilder.of(Material.TRIDENT)
-                .name(ChatColor.WHITE + "エンティティへのダメージ")
-                .lore(ChatColor.GRAY + "状態："+stateToJapanese(GuardFlags.getState(region, GuardFlags.ENTITY_DAMAGE)))
-                .persistentData(key, new EnumDataType<>(GuardFlags.class), GuardFlags.ENTITY_DAMAGE)
-                .build();
-        ItemStack regionEntryFlag = ItemStackBuilder.of(Material.BARRIER)
-                .name(ChatColor.WHITE + "メンバー以外の侵入")
-                .lore(ChatColor.GRAY + "状態："+stateToJapanese(GuardFlags.getState(region, GuardFlags.ENTRY)))
-                .persistentData(key, new EnumDataType<>(GuardFlags.class), GuardFlags.ENTRY)
-                .build();
-        ItemStack pistonsFlag = ItemStackBuilder.of(Material.PISTON)
-                .name(ChatColor.WHITE + "ピストンの使用")
-                .lore(ChatColor.GRAY + "状態："+stateToJapanese(GuardFlags.getState(region, GuardFlags.PISTONS)))
-                .persistentData(key, new EnumDataType<>(GuardFlags.class), GuardFlags.PISTONS)
-                .build();
-
-        inventory.setItem(1, breakFlag);
-        inventory.setItem(2, placeFlag);
-        inventory.setItem(3, interactFlag);
-        inventory.setItem(4, pvpFlag);
-        inventory.setItem(5, entityAttackFlag);
-        inventory.setItem(6, pistonsFlag);
-        inventory.setItem(7, regionEntryFlag);
+        for (int i = 0; i < values.length; i++) {
+            GuardFlags gf = values[i];
+            ItemStack item = ItemStackBuilder.of(gf.getIcon())
+                    .name(ChatColor.WHITE + gf.getDisplayName())
+                    .lore(ChatColor.GRAY + "状態："+stateToJapanese(GuardFlags.getState(region, gf)))
+                    .persistentData(key, new EnumDataType<>(GuardFlags.class), gf)
+                    .build();
+            inventory.setItem(i, item);
+        }
 
         if (getParent() != null) {
-            inventory.setItem(8, ItemStackBuilder.of(Material.ARROW)
+            inventory.setItem(size - 1, ItemStackBuilder.of(Material.ARROW)
                     .name(ChatColor.WHITE + "← 戻る")
                     .build());
         }
@@ -97,71 +66,57 @@ public class MenuGUI extends AbstractGUI{
 
         e.setCancelled(true);
 
-        if (e.getRawSlot() == 8 && getParent() != null
-                && e.getCurrentItem() != null && e.getCurrentItem().getType() == Material.ARROW) {
+        if (e.getCurrentItem() == null || e.getCurrentItem().getType().isAir()) return;
+
+        if (getParent() != null && e.getCurrentItem().getType() == Material.ARROW) {
             back();
             return;
         }
 
-        if (e.getCurrentItem() == null || e.getCurrentItem().getType().isAir()) return;
-
         NamespacedKey key = new NamespacedKey(PlayerGuard.getInstance(), "flag");
         PersistentDataContainer c = e.getCurrentItem().getItemMeta().getPersistentDataContainer();
 
-        if (c.get(key, new EnumDataType<>(GuardFlags.class)) == null)
+        GuardFlags flag = c.get(key, new EnumDataType<>(GuardFlags.class));
+        if (flag == null)
             return;
 
-        GuardFlags flag = c.get(key, new EnumDataType<>(GuardFlags.class));
+        if (PGConfig.isFlagDisabled(flag)) {
+            GuardFlags.initRegionFlag(region, flag);
 
-        switch (flag) {
-            case BREAK:
-            case PLACE:
-            case INTERACT:
-            case PVP:
-            case ENTITY_DAMAGE:
-            case ENTRY:
-            case PISTONS: {
-                if (PGConfig.isFlagDisabled(flag)) {
-                    GuardFlags.initRegionFlag(region, flag);
+            getPlayer().playSound(getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 10, 0);
+            init();
+            return;
+        }
 
-                    getPlayer().playSound(getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 10, 0);
-                    init();
-                    return;
-                }
+        GuardFlags.State state = GuardFlags.getState(region, flag);
 
-                GuardFlags.State state = GuardFlags.getState(region, flag);
+        List<GuardFlags.State> states = Arrays.asList(GuardFlags.State.values());
 
-                List<GuardFlags.State> states = Arrays.asList(GuardFlags.State.values());
+        int index = states.indexOf(state) + 1;
+        if (index >= states.size()) {
+            index = 0;
+        }
 
-                int index = states.indexOf(state) + 1;
-                if (index >= states.size()) {
-                    index = 0;
-                }
+        GuardFlags.State nextState = states.get(index);
+        if (nextState == GuardFlags.State.SOME_CHANGED) {
+            nextState = GuardFlags.State.ALLOW;
+        }
 
-                GuardFlags.State nextState = states.get(index);
-                if (nextState == GuardFlags.State.SOME_CHANGED) {
-                    nextState = GuardFlags.State.ALLOW;
-                }
-
-                if (nextState == GuardFlags.State.UNSET) {
-                    for (StateFlag sff : flag.getFlags()) {
-                        region.setFlag(sff, null);
-                        region.setFlag(sff.getRegionGroupFlag(), RegionGroup.NONE);
-                    }
-                }
-                else {
-                    boolean b = state == GuardFlags.State.ALLOW;
-                    for (StateFlag sff : flag.getFlags()) {
-                        region.setFlag(sff, PGUtil.boolToState(!b));
-                        region.setFlag(sff.getRegionGroupFlag(), flag == GuardFlags.PVP ? null : RegionGroup.NON_MEMBERS);
-                    }
-                }
-
-                getPlayer().playSound(getPlayer().getLocation(), Sound.UI_BUTTON_CLICK, 10, 2);
-
-                break;
+        if (nextState == GuardFlags.State.UNSET) {
+            for (StateFlag sff : flag.getFlags()) {
+                region.setFlag(sff, null);
+                region.setFlag(sff.getRegionGroupFlag(), RegionGroup.NONE);
             }
         }
+        else {
+            boolean b = state == GuardFlags.State.ALLOW;
+            for (StateFlag sff : flag.getFlags()) {
+                region.setFlag(sff, PGUtil.boolToState(!b));
+                region.setFlag(sff.getRegionGroupFlag(), flag.regionGroup());
+            }
+        }
+
+        getPlayer().playSound(getPlayer().getLocation(), Sound.UI_BUTTON_CLICK, 10, 2);
 
         init();
     }

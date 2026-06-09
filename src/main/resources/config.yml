@@ -11,6 +11,11 @@ protection:
     entity-damage: true
     entry: true
     pistons: true
+    explosion: true
+    fire: true
+    mob-spawning: true
+    item: true
+    environment: true
 
   spacing:
     min-spacing-between-regions: 0

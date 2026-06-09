@@ -7,6 +7,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import lombok.Getter;
 import net.nekozouneko.commons.lang.collect.Collections3;
 import net.nekozouneko.playerguard.PGUtil;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,26 +15,43 @@ import java.util.List;
 @Getter
 public enum GuardFlags {
 
-    BREAK("break", null, Flags.BLOCK_BREAK),
-    PLACE("place", null, Flags.BLOCK_PLACE),
-    INTERACT("interact", true, Flags.USE, Flags.INTERACT, Flags.CHEST_ACCESS, Flags.USE_ANVIL),
-    PVP("pvp", false, Flags.PVP),
-    ENTITY_DAMAGE("entity-damage", true, Flags.DAMAGE_ANIMALS),
-    ENTRY("entry", null, Flags.ENTRY, Flags.CHORUS_TELEPORT),
-    PISTONS("pistons", true, Flags.PISTONS, Flags.USE_DRIPLEAF);
+    BREAK("break", "ブロックの破壊", Material.IRON_PICKAXE, null, true, Flags.BLOCK_BREAK),
+    PLACE("place", "ブロックの設置", Material.CRAFTING_TABLE, null, true, Flags.BLOCK_PLACE),
+    INTERACT("interact", "アイテムの使用、チェストを開く", Material.REDSTONE, true, true, Flags.USE, Flags.INTERACT, Flags.CHEST_ACCESS, Flags.USE_ANVIL),
+    PVP("pvp", "PvP (プレイヤー同士のダメージ)", Material.IRON_SWORD, false, false, Flags.PVP),
+    ENTITY_DAMAGE("entity-damage", "エンティティへのダメージ", Material.TRIDENT, true, true, Flags.DAMAGE_ANIMALS),
+    ENTRY("entry", "メンバー以外の侵入", Material.BARRIER, null, true, Flags.ENTRY, Flags.CHORUS_TELEPORT),
+    PISTONS("pistons", "ピストンの使用", Material.PISTON, true, true, Flags.PISTONS, Flags.USE_DRIPLEAF),
+    EXPLOSION("explosion", "爆発によるダメージ", Material.TNT, true, false, Flags.CREEPER_EXPLOSION, Flags.TNT, Flags.OTHER_EXPLOSION),
+    FIRE("fire", "火の延焼", Material.FLINT_AND_STEEL, true, false, Flags.FIRE_SPREAD, Flags.LAVA_FIRE),
+    MOB_SPAWNING("mob-spawning", "モブのスポーン", Material.ZOMBIE_HEAD, true, false, Flags.MOB_SPAWNING),
+    ITEM("item", "アイテムのドロップ・拾う", Material.HOPPER, true, true, Flags.ITEM_DROP, Flags.ITEM_PICKUP),
+    ENVIRONMENT("environment", "環境変化（成長・葉の消滅）", Material.OAK_SAPLING, true, false, Flags.LEAF_DECAY, Flags.GRASS_SPREAD, Flags.MUSHROOMS, Flags.VINE_GROWTH, Flags.CROP_GROWTH);
 
     public enum State {
         ALLOW,DENY,UNSET,SOME_CHANGED
     }
 
-    private final Boolean defaultValue;
-    private final StateFlag[] flags;
     private final String configId;
+    private final String displayName;
+    private final Material icon;
+    private final Boolean defaultValue;
+    /** true なら非メンバーにのみ適用(RegionGroup.NON_MEMBERS)、false ならグループ無し(全体に適用)。 */
+    private final boolean nonMemberScoped;
+    private final StateFlag[] flags;
 
-    GuardFlags(String configId, Boolean defaultValue, StateFlag... flags) {
+    GuardFlags(String configId, String displayName, Material icon, Boolean defaultValue, boolean nonMemberScoped, StateFlag... flags) {
         this.configId = configId;
+        this.displayName = displayName;
+        this.icon = icon;
         this.defaultValue = defaultValue;
+        this.nonMemberScoped = nonMemberScoped;
         this.flags = flags;
+    }
+
+    /** このフラグを適用する RegionGroup。グループを付けない場合は null。 */
+    public RegionGroup regionGroup() {
+        return nonMemberScoped ? RegionGroup.NON_MEMBERS : null;
     }
 
     public static State getState(ProtectedRegion pr, GuardFlags flag) {
@@ -59,7 +77,7 @@ public enum GuardFlags {
             StateFlag.State state = PGUtil.boolToState(gf.getDefaultValue());
             for (StateFlag f : gf.getFlags()) {
                 region.setFlag(f, state);
-                region.setFlag(f.getRegionGroupFlag(), gf == PVP ? null : RegionGroup.NON_MEMBERS);
+                region.setFlag(f.getRegionGroupFlag(), gf.regionGroup());
             }
         }
     }
@@ -68,7 +86,7 @@ public enum GuardFlags {
         StateFlag.State state = PGUtil.boolToState(flag.getDefaultValue());
         for (StateFlag f : flag.getFlags()) {
             region.setFlag(f, state);
-            region.setFlag(f.getRegionGroupFlag(), flag == PVP ? null : RegionGroup.NON_MEMBERS);
+            region.setFlag(f.getRegionGroupFlag(), flag.regionGroup());
         }
     }
 
