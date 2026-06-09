@@ -4,18 +4,19 @@ import java.util.*;
 
 public class SubCommandManager {
 
-    Map<String, SubCommand> commands = new HashMap<>();
-    Map<String, String> aliases = new HashMap<>();
+    private final Map<String, SubCommand> commands = new HashMap<>();
+    /** alias -> 正規コマンド名 */
+    private final Map<String, String> aliases = new HashMap<>();
 
     public void register(String name, SubCommand command, String... aliases) {
         commands.put(name, command);
-        for (String alias : aliases)
-            this.aliases.put(name, alias);
+        for (String alias : aliases) {
+            this.aliases.put(alias, name);
+        }
     }
 
     public SubCommand getCommand(String name) {
-        String al = aliases.get(name);
-        return al == null ? commands.get(name) : commands.get(al);
+        return commands.get(aliases.getOrDefault(name, name));
     }
 
     public Set<String> getCommandNames() {
@@ -23,9 +24,8 @@ public class SubCommandManager {
     }
 
     public Set<String> getCommandNamesAndAliases() {
-        Set<String > set = new HashSet<>(commands.keySet());
+        Set<String> set = new HashSet<>(commands.keySet());
         set.addAll(aliases.keySet());
-
         return Collections.unmodifiableSet(set);
     }
 }

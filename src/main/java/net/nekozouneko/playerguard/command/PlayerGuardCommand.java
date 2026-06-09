@@ -23,11 +23,11 @@ public class PlayerGuardCommand implements CommandExecutor, TabCompleter {
     private final SubCommandManager manager = new SubCommandManager();
 
     public PlayerGuardCommand() {
-        manager.register("info", new InfoCommand());
-        manager.register("transfer", new TransferCommand());
+        manager.register("info", new InfoCommand(), "i");
+        manager.register("transfer", new TransferCommand(), "give");
         manager.register("add", new AddCommand());
-        manager.register("remove", new RemoveCommand());
-        manager.register("confirm", new ConfirmCommand());
+        manager.register("remove", new RemoveCommand(), "rm", "del");
+        manager.register("confirm", new ConfirmCommand(), "yes");
     }
 
     @Override
