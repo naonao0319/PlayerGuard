@@ -58,9 +58,7 @@ public class TransferCommand extends SubCommand {
             return true;
         }
 
-        if (requestTransfer(sender, region, transferTo)) {
-            transferTo.sendMessage(String.format(ChatColor.DARK_GREEN+"■ "+ChatColor.GREEN+"%sから%sをの移管リクエストが来ています。/pg confirmで移管を受け付けてください。", region.getId(), player.getName()));
-        }
+        requestTransfer(sender, region, transferTo);
 
         return true;
     }
@@ -88,6 +86,7 @@ public class TransferCommand extends SubCommand {
             transferTo.sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "%sを%sに移管をしました。", region.getId(), transferTo.getName()));
         });
 
+        transferTo.sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "%sから%sの移管リクエストが来ています。/pg confirmで移管を受け付けてください。", requester.getName(), region.getId()));
         requester.sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "%sを%sに移管をリクエストしました。", region.getId(), transferTo.getName()));
         return true;
     }
