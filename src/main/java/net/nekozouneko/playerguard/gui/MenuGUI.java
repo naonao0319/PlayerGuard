@@ -25,11 +25,12 @@ public class MenuGUI extends AbstractGUI{
     private final ProtectedRegion region;
 
     public MenuGUI(PlayerGuard instance, Player player, ProtectedRegion region) {
-        super(player);
+        this(instance, player, region, null);
+    }
 
+    public MenuGUI(PlayerGuard instance, Player player, ProtectedRegion region, AbstractGUI parent) {
+        super(player, parent);
         this.region = region;
-
-        instance.getServer().getPluginManager().registerEvents(this, instance);
     }
 
     @Override
@@ -83,6 +84,12 @@ public class MenuGUI extends AbstractGUI{
         inventory.setItem(5, entityAttackFlag);
         inventory.setItem(6, pistonsFlag);
         inventory.setItem(7, regionEntryFlag);
+
+        if (getParent() != null) {
+            inventory.setItem(8, ItemStackBuilder.of(Material.ARROW)
+                    .name(ChatColor.WHITE + "← 戻る")
+                    .build());
+        }
     }
 
     @EventHandler
@@ -90,6 +97,12 @@ public class MenuGUI extends AbstractGUI{
         if (e.getInventory().getHolder() != this) return;
 
         e.setCancelled(true);
+
+        if (e.getRawSlot() == 8 && getParent() != null
+                && e.getCurrentItem() != null && e.getCurrentItem().getType() == Material.ARROW) {
+            back();
+            return;
+        }
 
         if (e.getCurrentItem() == null || e.getCurrentItem().getType().isAir()) return;
 
@@ -152,13 +165,6 @@ public class MenuGUI extends AbstractGUI{
         }
 
         init();
-    }
-
-    @EventHandler
-    public void onClose(InventoryCloseEvent e) {
-        if (e.getInventory().getHolder() != this) return;
-
-        clearAllAGUIListeners(((Player) e.getPlayer()));
     }
 
     private String stateToJapanese(GuardFlags.State state) {
