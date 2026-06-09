@@ -85,7 +85,7 @@ GUI の「フラグ設定」から、各項目を **許可 → 拒否 → 設定
 - `protection.spacing` … 領域同士の最小間隔
 
 ## ビルド
-Maven でビルドできます（Java 8）。
+Maven でビルドできます。Minecraft 1.21 系に対応するため **JDK 21** が必要です。
 ```
 mvn clean package
 ```
