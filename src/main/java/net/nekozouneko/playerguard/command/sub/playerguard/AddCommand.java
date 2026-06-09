@@ -60,14 +60,20 @@ public class AddCommand extends SubCommand {
             return true;
         }
 
-        if (region.getMembers().contains(add.getUniqueId())) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"該当するプレイヤーはすでに追加されています。");
-            return true;
+        switch (net.nekozouneko.playerguard.region.RegionMembers.add(region, add.getUniqueId())) {
+            case ALREADY_MEMBER:
+                sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"該当するプレイヤーはすでに追加されています。");
+                return true;
+            case IS_OWNER:
+                sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"該当するプレイヤーはオーナーです。");
+                return true;
+            case INVALID:
+                sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"追加できませんでした。");
+                return true;
+            case ADDED:
+                sender.sendMessage(String.format(ChatColor.DARK_GREEN+"■ "+ChatColor.GREEN+"%sを追加しました。", add.getName()));
+                return true;
         }
-
-        region.getMembers().addPlayer(add.getUniqueId());
-
-        sender.sendMessage(String.format(ChatColor.DARK_GREEN+"■ "+ChatColor.GREEN+"%sを追加しました。", add.getName()));
         return true;
     }
 

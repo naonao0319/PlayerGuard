@@ -58,28 +58,36 @@ public class TransferCommand extends SubCommand {
             return true;
         }
 
+        requestTransfer(sender, region, transferTo);
+        transferTo.sendMessage(String.format(ChatColor.DARK_GREEN+"■ "+ChatColor.GREEN+"%sから%sをの移管リクエストが来ています。/pg confirmで移管を受け付けてください。", region.getId(), player.getName()));
+
+        return true;
+    }
+
+    /**
+     * region を transferTo へ譲渡するリクエストを発行する。
+     * 上限超過時は false を返す。受理は ConfirmCommand 経由。
+     */
+    public static boolean requestTransfer(CommandSender requester, ProtectedRegion region, Player transferTo) {
         PlayerGuard inst = PlayerGuard.getInstance();
 
         if (inst.getProtectionUsed(transferTo) + region.volume() > inst.getProtectLimit(transferTo)) {
-            sender.sendMessage(ChatColor.DARK_RED + "■ " + ChatColor.RED + "この相手に譲渡することはできません。");
-            return true;
+            requester.sendMessage(ChatColor.DARK_RED + "■ " + ChatColor.RED + "この相手に譲渡することはできません。");
+            return false;
         }
 
         ConfirmCommand.addConfirm(transferTo.getUniqueId(), () -> {
-                    if (inst.getProtectionUsed(transferTo) + region.volume() > inst.getProtectLimit(transferTo)) {
-                        sender.sendMessage(ChatColor.DARK_RED + "■ " + ChatColor.RED + "この移管リクエストを受理することができませんでした。。");
-                        return;
-                    }
-
-                    region.getOwners().clear();
-                    region.getMembers().clear();
-                    region.getOwners().addPlayer(transferTo.getUniqueId());
-                    transferTo.sendMessage(String.format(ChatColor.DARK_GREEN+"■ "+ChatColor.GREEN+"%sを%sに移管をしました。", region.getId(), transferTo.getName()));
+            if (inst.getProtectionUsed(transferTo) + region.volume() > inst.getProtectLimit(transferTo)) {
+                requester.sendMessage(ChatColor.DARK_RED + "■ " + ChatColor.RED + "この移管リクエストを受理することができませんでした。");
+                return;
+            }
+            region.getOwners().clear();
+            region.getMembers().clear();
+            region.getOwners().addPlayer(transferTo.getUniqueId());
+            transferTo.sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "%sを%sに移管をしました。", region.getId(), transferTo.getName()));
         });
 
-        sender.sendMessage(String.format(ChatColor.DARK_GREEN+"■ "+ChatColor.GREEN+"%sを%sに移管をリクエストしました。", region.getId(), transferTo.getName()));
-        transferTo.sendMessage(String.format(ChatColor.DARK_GREEN+"■ "+ChatColor.GREEN+"%sから%sをの移管リクエストが来ています。/pg confirmで移管を受け付けてください。", region.getId(), player.getName()));
-
+        requester.sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "%sを%sに移管をリクエストしました。", region.getId(), transferTo.getName()));
         return true;
     }
 
