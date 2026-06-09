@@ -120,6 +120,8 @@ public class MemberGUI extends AbstractGUI {
             Player to = Bukkit.getPlayer(uuid);
             if (to != null) {
                 TransferCommand.requestTransfer(getPlayer(), region, to);
+            } else {
+                getPlayer().sendMessage(ChatColor.DARK_RED + "■ " + ChatColor.RED + "そのプレイヤーはオフラインになりました。");
             }
             getPlayer().closeInventory();
         }).open();
