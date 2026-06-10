@@ -12,7 +12,7 @@ import java.util.UUID;
 
 /**
  * 期限付きbuilder貸出のコアロジック。
- * エントリ書式は "&lt;uuid&gt;:&lt;期限epochミリ秒&gt;"。壊れたエントリは読み飛ばし、purge時に破棄する。
+ * エントリ書式は "&lt;uuid&gt;:&lt;期限epochミリ秒&gt;"。壊れたエントリは読み飛ばし、purge/再書き込み時に破棄する。
  * Bukkit に依存せず単体テスト可能。
  */
 public final class RegionRentals {
@@ -107,7 +107,9 @@ public final class RegionRentals {
                 keep.add(raw);
             }
         }
-        region.setFlag(PGCustomFlags.RENTALS, keep.isEmpty() ? null : keep);
+        if (!removed.isEmpty() || keep.size() != current.size()) {
+            region.setFlag(PGCustomFlags.RENTALS, keep.isEmpty() ? null : keep);
+        }
         return removed;
     }
 

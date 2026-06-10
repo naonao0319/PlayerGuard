@@ -113,6 +113,29 @@ class RegionRentalsTest {
     }
 
     @Test
+    void purgeRemovesEntryExpiringExactlyNow() {
+        ProtectedRegion r = newRegion();
+        UUID u = UUID.randomUUID();
+        RegionRentals.rent(r, u, HOUR, 0);
+        assertEquals(1, RegionRentals.purgeExpired(r, HOUR).size());
+    }
+
+    @Test
+    void purgeWithoutChangesKeepsFlagInstance() {
+        ProtectedRegion r = newRegion();
+        UUID u = UUID.randomUUID();
+        RegionRentals.rent(r, u, HOUR, 0);
+        Set<String> before = r.getFlag(PGCustomFlags.RENTALS);
+        assertTrue(RegionRentals.purgeExpired(r, 0).isEmpty());
+        assertSame(before, r.getFlag(PGCustomFlags.RENTALS));
+    }
+
+    @Test
+    void formatsExactlyOneMinute() {
+        assertEquals("1分", RegionRentals.formatRemaining(60_000L));
+    }
+
+    @Test
     void formatsRemainingTime() {
         assertEquals("1分未満", RegionRentals.formatRemaining(30_000L));
         assertEquals("5分", RegionRentals.formatRemaining(5 * 60_000L));
