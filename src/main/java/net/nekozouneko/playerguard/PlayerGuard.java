@@ -19,6 +19,7 @@ import net.nekozouneko.playerguard.flag.PGCustomFlags;
 import net.nekozouneko.playerguard.listener.PlayerChangedWorldListener;
 import net.nekozouneko.playerguard.listener.PlayerInteractListener;
 import net.nekozouneko.playerguard.listener.VisitorLogListener;
+import net.nekozouneko.playerguard.scheduler.PGScheduler;
 import net.nekozouneko.playerguard.selection.SelectionStorage;
 import net.nekozouneko.playerguard.task.ActionbarTask;
 import net.nekozouneko.playerguard.task.RentalExpiryTask;
@@ -30,7 +31,6 @@ import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public final class PlayerGuard extends JavaPlugin {
 
@@ -46,10 +46,8 @@ public final class PlayerGuard extends JavaPlugin {
     private SelectionStorage selectionStorage;
     @Getter
     private VisitorLogService visitorLogService;
-    private ActionbarTask regionActionbarTask;
-    private SelectionRenderTask selectionRenderTask;
-    private RentalExpiryTask rentalExpiryTask;
-    private VisitorLogFlushTask visitorLogFlushTask;
+    @Getter
+    private PGScheduler scheduler;
 
     @Override
     public void onLoad() {
@@ -124,17 +122,13 @@ public final class PlayerGuard extends JavaPlugin {
         if (visitorLogService != null)
             getServer().getPluginManager().registerEvents(new VisitorLogListener(visitorLogService), this);
 
-        regionActionbarTask = new ActionbarTask();
-        regionActionbarTask.runTaskTimer(this, 0, 20);
-        selectionRenderTask = new SelectionRenderTask();
-        selectionRenderTask.runTaskTimer(this, 0, 10);
-        rentalExpiryTask = new RentalExpiryTask();
-        rentalExpiryTask.runTaskTimer(this, 20L * 60, 20L * 60);
+        scheduler = PGScheduler.create(this);
+        scheduler.runTimer(new ActionbarTask(), 0, 20);
+        scheduler.runTimer(new SelectionRenderTask(), 0, 10);
+        scheduler.runTimer(new RentalExpiryTask(), 20L * 60, 20L * 60);
         if (visitorLogService != null) {
-            visitorLogFlushTask = new VisitorLogFlushTask(visitorLogService);
-            visitorLogFlushTask.runTaskTimer(this, PGConfig.getVisitorLogFlushIntervalTicks(), PGConfig.getVisitorLogFlushIntervalTicks());
-        } else {
-            visitorLogFlushTask = null;
+            scheduler.runAsyncTimer(new VisitorLogFlushTask(visitorLogService),
+                    PGConfig.getVisitorLogFlushIntervalTicks(), PGConfig.getVisitorLogFlushIntervalTicks());
         }
 
         getCommand("cancel-claim").setExecutor(new CancelCommand());
@@ -149,14 +143,8 @@ public final class PlayerGuard extends JavaPlugin {
     public void onDisable() {
         instance = null;
 
-        safetyTaskCancel(regionActionbarTask);
-        regionActionbarTask = null;
-        safetyTaskCancel(selectionRenderTask);
-        selectionRenderTask = null;
-        safetyTaskCancel(rentalExpiryTask);
-        rentalExpiryTask = null;
-        safetyTaskCancel(visitorLogFlushTask);
-        visitorLogFlushTask = null;
+        if (scheduler != null) scheduler.cancelAll();
+        scheduler = null;
         if (visitorLogService != null) visitorLogService.save();
         visitorLogService = null;
 
@@ -192,18 +180,14 @@ public final class PlayerGuard extends JavaPlugin {
     }
 
     public void resetAllRegions() {
-        RegionContainer rc = WorldGuard.getInstance().getPlatform().getRegionContainer();
-        rc.getLoaded().forEach(rm ->
-                rm.getRegions().values().stream()
-                        .filter(pr -> !(pr instanceof GlobalProtectedRegion))
-                        .filter(pr -> StateFlag.test(pr.getFlag(PlayerGuard.getGuardRegisteredFlag())))
-                        .forEach(pr -> rm.removeRegion(pr.getId()))
-        );
-    }
-
-    private void safetyTaskCancel(BukkitRunnable task) {
-        if (task == null || task.isCancelled()) return;
-
-        task.cancel();
+        scheduler.runGlobal(() -> {
+            RegionContainer rc = WorldGuard.getInstance().getPlatform().getRegionContainer();
+            rc.getLoaded().forEach(rm ->
+                    rm.getRegions().values().stream()
+                            .filter(pr -> !(pr instanceof GlobalProtectedRegion))
+                            .filter(pr -> StateFlag.test(pr.getFlag(PlayerGuard.getGuardRegisteredFlag())))
+                            .forEach(pr -> rm.removeRegion(pr.getId()))
+            );
+        });
     }
 }
