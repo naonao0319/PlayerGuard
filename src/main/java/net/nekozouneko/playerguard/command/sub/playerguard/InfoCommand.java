@@ -5,8 +5,8 @@ import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
-import net.md_5.bungee.api.ChatColor;
 import net.nekozouneko.commons.spigot.command.TabCompletes;
+import net.nekozouneko.playerguard.PGMessages;
 import net.nekozouneko.playerguard.PGUtil;
 import net.nekozouneko.playerguard.PlayerGuard;
 import net.nekozouneko.playerguard.command.sub.SubCommand;
@@ -28,7 +28,7 @@ public class InfoCommand extends SubCommand {
 
         if (args.isEmpty()) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"引数を入力してください。");
+                sender.sendMessage(PGMessages.warn("領域IDを指定してください。"));
                 return true;
             }
 
@@ -48,26 +48,25 @@ public class InfoCommand extends SubCommand {
         }
 
         if (region == null) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"該当する保護領域がありません。");
+            sender.sendMessage(PGMessages.error("対象の保護領域が見つかりません。"));
             return true;
         }
 
-        sender.sendMessage(String.format(ChatColor.GOLD+"■ "+ChatColor.YELLOW+"%s", region.getId()));
-        sender.sendMessage(String.format("(%d, %d, %d) -> (%d, %d, %d) | %s",
+        sender.sendMessage(PGMessages.title("領域情報 %s", PGMessages.highlight(region.getId())));
+        sender.sendMessage(PGMessages.detail("ワールド", PGMessages.highlight(world.getName())));
+        sender.sendMessage(PGMessages.detail("範囲", String.format("(%d, %d, %d) -> (%d, %d, %d)",
                 region.getMinimumPoint().x(), region.getMinimumPoint().y(), region.getMinimumPoint().z(),
-                region.getMaximumPoint().x(), region.getMaximumPoint().y(), region.getMaximumPoint().z(),
-                world.getName()
-        ));
-        sender.sendMessage(String.format("所有者: %s", region.getOwners().getUniqueIds().stream()
+                region.getMaximumPoint().x(), region.getMaximumPoint().y(), region.getMaximumPoint().z()
+        )));
+        sender.sendMessage(PGMessages.detail("所有者", region.getOwners().getUniqueIds().stream()
                 .map(Bukkit::getOfflinePlayer)
                 .map(OfflinePlayer::getName)
-                .collect(Collectors.joining(", ")))
-        );
+                .collect(Collectors.joining(", "))));
         String members = region.getMembers().getUniqueIds().stream()
                 .map(Bukkit::getOfflinePlayer)
                 .map(OfflinePlayer::getName)
                 .collect(Collectors.joining(", "));
-        sender.sendMessage(String.format("メンバー: %s", members.isEmpty() ? "-" : members));
+        sender.sendMessage(PGMessages.detail("メンバー", members.isEmpty() ? "-" : members));
         return true;
     }
 

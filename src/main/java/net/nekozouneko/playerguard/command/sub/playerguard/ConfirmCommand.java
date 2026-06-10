@@ -1,6 +1,6 @@
 package net.nekozouneko.playerguard.command.sub.playerguard;
 
-import net.md_5.bungee.api.ChatColor;
+import net.nekozouneko.playerguard.PGMessages;
 import net.nekozouneko.playerguard.command.sub.SubCommand;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -61,13 +61,13 @@ public class ConfirmCommand extends SubCommand {
         Runnable confirm = getConfirm(sender instanceof Player ? ((Player) sender).getUniqueId() : null);
 
         if (confirm == null) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"処理を行うためのデータがありませんでした。");
+            sender.sendMessage(PGMessages.warn("確定できる処理が見つかりませんでした。"));
             return true;
         }
 
         confirm.run();
         removeConfirm(sender instanceof Player ? ((Player) sender).getUniqueId() : null);
-        sender.sendMessage(ChatColor.DARK_GREEN+"■ "+ChatColor.GREEN+"操作を続行しました。");
+        sender.sendMessage(PGMessages.success("操作を続行しました。"));
 
         return true;
     }

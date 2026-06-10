@@ -3,6 +3,7 @@ package net.nekozouneko.playerguard.gui;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.nekozouneko.commons.spigot.inventory.ItemStackBuilder;
 import net.nekozouneko.playerguard.PGConfig;
+import net.nekozouneko.playerguard.PGMessages;
 import net.nekozouneko.playerguard.command.sub.playerguard.TransferCommand;
 import net.nekozouneko.playerguard.region.RegionMembers;
 import net.nekozouneko.playerguard.region.RegionRentals;
@@ -166,7 +167,7 @@ public class MemberGUI extends AbstractGUI {
             if (to != null) {
                 TransferCommand.requestTransfer(getPlayer(), region, to);
             } else {
-                getPlayer().sendMessage(ChatColor.DARK_RED + "■ " + ChatColor.RED + "そのプレイヤーはオフラインになりました。");
+                getPlayer().sendMessage(PGMessages.warn("対象プレイヤーはオフラインになりました。"));
             }
             getPlayer().closeInventory();
         }).open();

@@ -1,8 +1,8 @@
 package net.nekozouneko.playerguard.command;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-import net.md_5.bungee.api.ChatColor;
 import net.nekozouneko.commons.spigot.command.TabCompletes;
+import net.nekozouneko.playerguard.PGMessages;
 import net.nekozouneko.playerguard.PGUtil;
 import net.nekozouneko.playerguard.PlayerGuard;
 import net.nekozouneko.playerguard.command.sub.SubCommand;
@@ -54,7 +54,7 @@ public class PlayerGuardCommand implements CommandExecutor, TabCompleter {
             return sc.execute(sender, command, label, args2.subList(1, args2.size()));
         }
 
-        sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"権限がないかそのようなコマンドはありません。");
+        sender.sendMessage(PGMessages.error("権限がないか、そのコマンドは存在しません。"));
 
         return true;
     }
@@ -91,17 +91,21 @@ public class PlayerGuardCommand implements CommandExecutor, TabCompleter {
 
         PlayerGuard pg = PlayerGuard.getInstance();
 
-        player.sendMessage(String.format(ChatColor.GOLD+"■ "+ChatColor.YELLOW+"あなたの情報 (%s)", player.getName()));
-        player.sendMessage(String.format(ChatColor.GRAY+"保護制限: "+ChatColor.WHITE+"%d/%d"
-                , pg.getProtectionUsed(player), pg.getProtectLimit(player)));
+        player.sendMessage(PGMessages.title("あなたの情報 (%s)", player.getName()));
+        player.sendMessage(PGMessages.detail(
+                "保護制限",
+                PGMessages.highlight(pg.getProtectionUsed(player)) + "/" + PGMessages.highlight(pg.getProtectLimit(player))
+        ));
 
         Map<ProtectedRegion, World> protects = PGUtil.getPlayerRegions(player);
 
-        player.sendMessage(String.format(ChatColor.GOLD+"■ "+ChatColor.YELLOW+"保護している領域 (%d)", protects.size()));
+        player.sendMessage(PGMessages.title("保護している領域 (%s)", PGMessages.highlight(protects.size())));
 
         protects.forEach((pr, w) ->
-            player.sendMessage(String.format(ChatColor.WHITE+"* %s/%s "+ChatColor.GRAY+"(%d, %d %d) -> (%d, %d, %d)",
+            player.sendMessage(String.format("%s* %s/%s %s(%d, %d, %d) -> (%d, %d, %d)",
+                    org.bukkit.ChatColor.WHITE,
                     pr.getId(), w.getName(),
+                    org.bukkit.ChatColor.GRAY,
                     pr.getMinimumPoint().x(), pr.getMinimumPoint().y(), pr.getMinimumPoint().z(),
                     pr.getMaximumPoint().x(), pr.getMaximumPoint().y(), pr.getMaximumPoint().z()
             ))

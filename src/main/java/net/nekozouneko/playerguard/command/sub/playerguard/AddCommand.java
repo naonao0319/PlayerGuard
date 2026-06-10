@@ -5,8 +5,8 @@ import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
-import net.md_5.bungee.api.ChatColor;
 import net.nekozouneko.commons.spigot.command.TabCompletes;
+import net.nekozouneko.playerguard.PGMessages;
 import net.nekozouneko.playerguard.PGUtil;
 import net.nekozouneko.playerguard.PlayerGuard;
 import net.nekozouneko.playerguard.command.sub.SubCommand;
@@ -22,14 +22,14 @@ public class AddCommand extends SubCommand {
     @Override
     public boolean execute(CommandSender sender, Command command, String label, List<String> args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"このコマンドはプレイヤーからのみ実行できます。");
+            sender.sendMessage(PGMessages.error("このコマンドはプレイヤーのみ実行できます。"));
             return true;
         }
 
         Player player = (Player) sender;
 
         if (args.isEmpty()) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"引数を入力してください。");
+            sender.sendMessage(PGMessages.warn("プレイヤー名を指定してください。"));
             return true;
         }
 
@@ -51,27 +51,27 @@ public class AddCommand extends SubCommand {
         }
 
         if (region == null || !region.getOwners().contains(player.getUniqueId())) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"該当する保護領域がありません。");
+            sender.sendMessage(PGMessages.error("対象の保護領域が見つかりません。"));
             return true;
         }
 
         if (add == null || add.equals(player)) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"該当するプレイヤーはオンラインでないか、存在しません。");
+            sender.sendMessage(PGMessages.error("対象プレイヤーが見つからないか、オンラインではありません。"));
             return true;
         }
 
         switch (net.nekozouneko.playerguard.region.RegionMembers.add(region, add.getUniqueId())) {
             case ALREADY_MEMBER:
-                sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"該当するプレイヤーはすでに追加されています。");
+                sender.sendMessage(PGMessages.warn("%s はすでにメンバーです。", PGMessages.highlight(add.getName())));
                 return true;
             case IS_OWNER:
-                sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"該当するプレイヤーはオーナーです。");
+                sender.sendMessage(PGMessages.warn("%s はすでにオーナーです。", PGMessages.highlight(add.getName())));
                 return true;
             case INVALID:
-                sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"追加できませんでした。");
+                sender.sendMessage(PGMessages.error("%s をメンバーに追加できませんでした。", PGMessages.highlight(add.getName())));
                 return true;
             case ADDED:
-                sender.sendMessage(String.format(ChatColor.DARK_GREEN+"■ "+ChatColor.GREEN+"%sを追加しました。", add.getName()));
+                sender.sendMessage(PGMessages.success("%s をメンバーに追加しました。", PGMessages.highlight(add.getName())));
                 return true;
         }
         return true;

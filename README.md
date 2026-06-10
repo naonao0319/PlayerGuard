@@ -29,6 +29,11 @@ WorldGuard を用いた、プレイヤー向けの土地保護プラグインで
 ## 導入
 サーバーを停止し、`plugins/` フォルダに jar を入れて起動するだけで使えます。WorldGuard・WorldEdit も同じく導入してください。
 
+## クイックスタート
+1. 金の斧で保護したい範囲を選択します。
+2. `/claim` を実行して領域を作成します。
+3. 作成した領域の中で `/pg` を実行し、フラグやメンバーを GUI から管理します。
+
 ## 使い方
 
 ### 領域の保護
@@ -53,6 +58,7 @@ WorldGuard を用いた、プレイヤー向けの土地保護プラグインで
 - **builder** … 建築のみ（期限付き貸出で一時的に付与される場合あり）
 
 > subowner は「サーバー管理者（op/admin）」とは別で、あくまで“その領域の共同管理者”です。
+> また、subowner に領域の譲渡や削除を許可するかは `config.yml` の `permissions` で切り替えられます。
 
 ### 訪問者ログ（visitor-log）
 訪問者ログは、領域内に入った非メンバーの行動を記録し、管理ハブGUIから確認できます。
@@ -60,6 +66,7 @@ WorldGuard を用いた、プレイヤー向けの土地保護プラグインで
 - 記録対象: デフォルトは非メンバーのみ（configで builder を含める等に変更可能）
 - 記録内容: 入退場 / 破壊 / 設置 / コンテナ操作（configで個別にON/OFF可能）
 - 保存: `plugins/PlayerGuard/visitor-log.yml`（定期保存＋停止時保存）
+- 領域の譲渡や削除を行うと、その領域に紐づく訪問者ログと貸出情報は整理されます
 
 ### 設定できるフラグ
 GUI の「フラグ設定」から、各項目を **許可 → 拒否 → 設定解除** で切り替えられます。
@@ -125,6 +132,18 @@ visitor-log:
     allow-builder-view: false
 ```
 
+### 設定例（ロール権限）
+```yml
+permissions:
+  allow-subowner-transfer: false
+  allow-subowner-disclaim: false
+```
+
+### 記録対象の例
+- `visitors-only` … 非メンバーのみを記録
+- `include-builders` … 非メンバーと builder を記録
+- `include-all` … 領域内の全員を記録
+
 ## ビルド
 Maven でビルドできます。Minecraft 1.21 系に対応するため **JDK 21** が必要です。
 ```
@@ -133,7 +152,9 @@ mvn clean package
 `target/PlayerGuard-x.x.x.jar`（shade 済み）が生成されます。
 
 ## リリース
-`v` で始まるタグ（例: `v1.4.2`）を push すると、GitHub Actions が自動でビルドして Release に jar を添付します。
+`v` で始まるタグ（例: `v1.6.1`）を push すると、GitHub Actions が自動でビルドして Release に jar を添付します。
+
+> `master` に push しただけでは Release workflow は動きません。リリースを作るときは `v*` タグを push してください。
 
 ## ライセンス
 このプロジェクトは [GPL-3.0](LICENSE) でライセンスされています。元の著作権は [TeamNekozouneko](https://github.com/TeamNekozouneko/PlayerGuard) に帰属します。

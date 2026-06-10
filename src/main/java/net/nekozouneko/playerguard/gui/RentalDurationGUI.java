@@ -2,6 +2,7 @@ package net.nekozouneko.playerguard.gui;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.nekozouneko.commons.spigot.inventory.ItemStackBuilder;
+import net.nekozouneko.playerguard.PGMessages;
 import net.nekozouneko.playerguard.region.RegionRentals;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -75,20 +76,28 @@ public class RentalDurationGUI extends AbstractGUI {
         switch (result) {
             case RENTED:
             case EXTENDED:
-                getPlayer().sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN
-                        + "%sに「%s」の建築権を%s貸し出しました。", targetName, region.getId(), label));
+                getPlayer().sendMessage(PGMessages.success(
+                        "%s に領域 %s の建築権を %s 貸し出しました。",
+                        PGMessages.highlight(targetName),
+                        PGMessages.highlight(region.getId()),
+                        PGMessages.highlight(label)
+                ));
                 getPlayer().playSound(getPlayer().getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 10, 2);
                 Player t = Bukkit.getPlayer(target);
                 if (t != null) {
-                    t.sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN
-                            + "%sから「%s」の建築権を%s貸与されました。", getPlayer().getName(), region.getId(), label));
+                    t.sendMessage(PGMessages.info(
+                            "%s から領域 %s の建築権を %s 貸与されました。",
+                            PGMessages.highlight(getPlayer().getName()),
+                            PGMessages.highlight(region.getId()),
+                            PGMessages.highlight(label)
+                    ));
                 }
                 break;
             case ALREADY_MEMBER:
-                getPlayer().sendMessage(ChatColor.DARK_RED + "■ " + ChatColor.RED + "そのプレイヤーは既にメンバーです。");
+                getPlayer().sendMessage(PGMessages.warn("そのプレイヤーはすでにメンバーです。"));
                 break;
             default:
-                getPlayer().sendMessage(ChatColor.DARK_RED + "■ " + ChatColor.RED + "貸出に失敗しました。");
+                getPlayer().sendMessage(PGMessages.error("建築権の貸出に失敗しました。"));
                 break;
         }
         back();

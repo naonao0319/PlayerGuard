@@ -11,8 +11,8 @@ import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
-import net.md_5.bungee.api.ChatColor;
 import net.nekozouneko.playerguard.PGConfig;
+import net.nekozouneko.playerguard.PGMessages;
 import net.nekozouneko.playerguard.PGUtil;
 import net.nekozouneko.playerguard.PlayerGuard;
 import net.nekozouneko.playerguard.flag.GuardFlags;
@@ -32,7 +32,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"このコマンドはプレイヤーからのみ実行できます。");
+            sender.sendMessage(PGMessages.error("このコマンドはプレイヤーのみ実行できます。"));
             return true;
         }
 
@@ -42,7 +42,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         CuboidRegion cr = ss.getSelection(p.getUniqueId());
 
         if (cr == null) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"金の斧で保護する範囲を指定してください。");
+            sender.sendMessage(PGMessages.warn("先に金の斧で保護する範囲を選択してください。"));
             return true;
         }
 
@@ -53,13 +53,18 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         long limit = PlayerGuard.getInstance().getProtectLimit(p);
 
         if (36 > cr.getVolume()) {
-            sender.sendMessage(ChatColor.DARK_RED + "■ "+ChatColor.RED+"保護領域の最小サイズは36ブロックです。(36 > "+cr.getVolume()+")");
+            sender.sendMessage(PGMessages.error("保護領域の最小サイズは36ブロックです。現在サイズ: %s", PGMessages.highlight(cr.getVolume())));
             return true;
         }
 
         if (limit <= used + cr.getVolume()) {
             ss.clear(p.getUniqueId());
-            p.sendMessage(String.format(ChatColor.DARK_RED +"■ "+ChatColor.RED+"保護領域の制限を超過しています。(%d (%d) > %d)", used + cr.getVolume(), cr.getVolume(), limit));
+            p.sendMessage(PGMessages.error(
+                    "保護上限を超えています。使用量: %s / 追加分: %s / 上限: %s",
+                    PGMessages.highlight(used + cr.getVolume()),
+                    PGMessages.highlight(cr.getVolume()),
+                    PGMessages.highlight(limit)
+            ));
             return true;
         }
 
@@ -80,7 +85,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         }
 
         if (timedout) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"IDを生成できませんでした。再度試行してください。");
+            sender.sendMessage(PGMessages.error("領域IDを生成できませんでした。もう一度試してください。"));
             return true;
         }
 
@@ -96,7 +101,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 .count();
 
         if (count > 0 || ars.testState(WorldGuardPlugin.inst().wrapPlayer(p), PlayerGuard.getGuardIgnoredFlag())) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"領域が重複しています。");
+            sender.sendMessage(PGMessages.error("ほかの保護領域と重なっています。"));
             return true;
         }
 
@@ -111,14 +116,18 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         }
 
         if (minDistance <= PGConfig.getMinSpacingBetweenRegions()) {
-            sender.sendMessage(String.format(ChatColor.DARK_RED+"■ "+ChatColor.RED+"領域が他の領域と近いです。(%d)", minDistance));
+            sender.sendMessage(PGMessages.error("ほかの領域との距離が近すぎます。最短距離: %s", PGMessages.highlight(minDistance)));
             return true;
         }
 
         rm.addRegion(protect);
         ss.clear(p.getUniqueId());
 
-        p.sendMessage(String.format(ChatColor.DARK_GREEN+"■ "+ChatColor.GREEN+"保護領域「%s」を設定しました。(残り%dブロック)", id, limit-(used+protect.volume())));
+        p.sendMessage(PGMessages.success(
+                "保護領域 %s を作成しました。残り保護量: %s ブロック",
+                PGMessages.highlight(id),
+                PGMessages.highlight(limit - (used + protect.volume()))
+        ));
 
         return true;
     }

@@ -2,6 +2,7 @@ package net.nekozouneko.playerguard.gui;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.nekozouneko.commons.spigot.inventory.ItemStackBuilder;
+import net.nekozouneko.playerguard.PGMessages;
 import net.nekozouneko.playerguard.region.RegionRentals;
 import net.nekozouneko.playerguard.region.RegionRoles;
 import net.nekozouneko.playerguard.region.RegionRoles.Role;
@@ -129,32 +130,28 @@ public class MemberActionGUI extends AbstractGUI {
             case SLOT_PROMOTE:
                 if (canPromote(viewer, targetRole, rental)
                         && RegionRoles.promote(region, target) == RegionRoles.PromoteResult.PROMOTED) {
-                    getPlayer().sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN
-                            + "%sをsubownerに昇格しました。", targetName()));
+                    getPlayer().sendMessage(PGMessages.success("%s を subowner に昇格しました。", PGMessages.highlight(targetName())));
                     clickFeedbackAndBack();
                 } else init();
                 break;
             case SLOT_DEMOTE:
                 if (canDemote(viewer, targetRole)
                         && RegionRoles.demote(region, target) == RegionRoles.DemoteResult.DEMOTED) {
-                    getPlayer().sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN
-                            + "%sをbuilderに降格しました。", targetName()));
+                    getPlayer().sendMessage(PGMessages.success("%s を builder に降格しました。", PGMessages.highlight(targetName())));
                     clickFeedbackAndBack();
                 } else init();
                 break;
             case SLOT_CANCEL_RENTAL:
                 if (canCancelRental(viewer, rental)
                         && RegionRoles.removeMember(region, target) == RegionRoles.RemoveRoleResult.REMOVED) {
-                    getPlayer().sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN
-                            + "%sへの貸出を解約しました。", targetName()));
+                    getPlayer().sendMessage(PGMessages.success("%s への貸出を解約しました。", PGMessages.highlight(targetName())));
                     clickFeedbackAndBack();
                 } else init();
                 break;
             case SLOT_REMOVE:
                 if (canRemove(viewer, targetRole, rental)
                         && RegionRoles.removeMember(region, target) == RegionRoles.RemoveRoleResult.REMOVED) {
-                    getPlayer().sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN
-                            + "%sをメンバーから削除しました。", targetName()));
+                    getPlayer().sendMessage(PGMessages.success("%s をメンバーから削除しました。", PGMessages.highlight(targetName())));
                     clickFeedbackAndBack();
                 } else init();
                 break;

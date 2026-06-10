@@ -5,8 +5,8 @@ import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
-import net.md_5.bungee.api.ChatColor;
 import net.nekozouneko.playerguard.PGConfig;
+import net.nekozouneko.playerguard.PGMessages;
 import net.nekozouneko.playerguard.PGUtil;
 import net.nekozouneko.playerguard.PlayerGuard;
 import net.nekozouneko.playerguard.command.sub.playerguard.ConfirmCommand;
@@ -25,7 +25,7 @@ public class DisclaimCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"このコマンドはプレイヤーからのみ実行できます。");
+            sender.sendMessage(PGMessages.error("このコマンドはプレイヤーのみ実行できます。"));
             return true;
         }
         Player p = (Player) sender;
@@ -55,16 +55,17 @@ public class DisclaimCommand implements CommandExecutor, TabCompleter {
         }
 
         if (pr == null || !pr.getOwners().contains(p.getUniqueId())) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"ここにはあなたが削除できる保護領域がないか、その保護領域が存在しません。");
+            sender.sendMessage(PGMessages.error("ここには削除できる保護領域がありません。"));
             return true;
         }
 
         if (!RegionRoles.isPrimaryOwner(pr, p.getUniqueId())) {
             if (!(RegionRoles.roleOf(pr, p.getUniqueId()) == RegionRoles.Role.SUB_OWNER && PGConfig.allowSubownerDisclaim())) {
-                sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED
-                        + (PGConfig.allowSubownerDisclaim()
-                        ? "領域の削除は主オーナーまたはsubownerのみ可能です。"
-                        : "領域の削除は主オーナーのみ可能です。"));
+                sender.sendMessage(PGMessages.error(
+                        (PGConfig.allowSubownerDisclaim()
+                        ? "領域を削除できるのは主オーナーまたはsubownerのみです。"
+                        : "領域を削除できるのは主オーナーのみです。")
+                ));
                 return true;
             }
         }
@@ -76,9 +77,9 @@ public class DisclaimCommand implements CommandExecutor, TabCompleter {
                 PlayerGuard.getInstance().getVisitorLogService().clearByRegionId(region.getId());
             manager.removeRegion(region.getId());
 
-            sender.sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "保護領域「%s」を削除しました。", region.getId()));
+            sender.sendMessage(PGMessages.success("保護領域 %s を削除しました。", PGMessages.highlight(region.getId())));
         });
-        sender.sendMessage(ChatColor.GOLD + "■ " + ChatColor.YELLOW + "削除するには/playerguard confirmを実行してください。");
+        sender.sendMessage(PGMessages.warn("削除を確定するには %s を実行してください。", PGMessages.highlight("/pg confirm")));
 
         return true;
     }
