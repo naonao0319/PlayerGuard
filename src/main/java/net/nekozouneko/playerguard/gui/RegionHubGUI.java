@@ -21,6 +21,7 @@ public class RegionHubGUI extends AbstractGUI {
     private static final int SLOT_FLAGS = 2;
     private static final int SLOT_MEMBERS = 4;
     private static final int SLOT_INFO = 6;
+    private static final int SLOT_VISITOR_LOG = 7;
     private static final int SLOT_CLOSE = 8;
 
     private final ProtectedRegion region;
@@ -57,6 +58,8 @@ public class RegionHubGUI extends AbstractGUI {
                         ChatColor.GRAY + "オーナー数: " + ChatColor.WHITE + region.getOwners().size(),
                         ChatColor.GRAY + "メンバー数: " + ChatColor.WHITE + region.getMembers().size()
                 ).build());
+        inventory.setItem(SLOT_VISITOR_LOG, ItemStackBuilder.of(Material.BOOK)
+                .name(ChatColor.WHITE + "訪問者ログ").build());
         inventory.setItem(SLOT_CLOSE, ItemStackBuilder.of(Material.BARRIER)
                 .name(ChatColor.RED + "閉じる").build());
     }
@@ -72,6 +75,9 @@ public class RegionHubGUI extends AbstractGUI {
                 break;
             case SLOT_MEMBERS:
                 new MemberGUI(getPlayer(), this, region).open();
+                break;
+            case SLOT_VISITOR_LOG:
+                new VisitorLogGUI(getPlayer(), this, region).open();
                 break;
             case SLOT_CLOSE:
                 getPlayer().closeInventory();
