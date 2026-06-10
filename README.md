@@ -91,7 +91,7 @@ GUI の「フラグ設定」から、各項目を **許可 → 拒否 → 設定
 | `/disclaim` | `/remove-hogo`, `/hogo-remove` | 保護を解除 |
 | `/cancel` | `/cancel-claim` | 範囲選択をキャンセル |
 | `/flags` | | フラグ設定GUIを開く（領域内） |
-| `/pg` | `/guard`, `/pg` | 管理ハブGUI（領域内）/ 情報表示（領域外） |
+| `/pg` | `/guard`, `/pg` | 管理ハブGUI（領域内）/ 領域一覧GUI（領域外） |
 | `/pg add <player>` | | メンバーを追加 |
 | `/pg remove <player>` | `rm`, `del` | メンバーを削除 |
 | `/pg transfer <player>` | `give` | 領域を譲渡（相手が `/pg confirm` で受理） |
