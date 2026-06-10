@@ -20,6 +20,7 @@ import net.nekozouneko.playerguard.listener.PlayerChangedWorldListener;
 import net.nekozouneko.playerguard.listener.PlayerInteractListener;
 import net.nekozouneko.playerguard.selection.SelectionStorage;
 import net.nekozouneko.playerguard.task.ActionbarTask;
+import net.nekozouneko.playerguard.task.RentalExpiryTask;
 import net.nekozouneko.playerguard.task.SelectionRenderTask;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Statistic;
@@ -42,6 +43,7 @@ public final class PlayerGuard extends JavaPlugin {
     private SelectionStorage selectionStorage;
     private ActionbarTask regionActionbarTask;
     private SelectionRenderTask selectionRenderTask;
+    private RentalExpiryTask rentalExpiryTask;
 
     @Override
     public void onLoad() {
@@ -113,6 +115,8 @@ public final class PlayerGuard extends JavaPlugin {
         regionActionbarTask.runTaskTimer(this, 0, 20);
         selectionRenderTask = new SelectionRenderTask();
         selectionRenderTask.runTaskTimer(this, 0, 10);
+        rentalExpiryTask = new RentalExpiryTask();
+        rentalExpiryTask.runTaskTimer(this, 20L * 60, 20L * 60);
 
         getCommand("cancel-claim").setExecutor(new CancelCommand());
         getCommand("claim").setExecutor(new ClaimCommand());
@@ -130,6 +134,8 @@ public final class PlayerGuard extends JavaPlugin {
         regionActionbarTask = null;
         safetyTaskCancel(selectionRenderTask);
         selectionRenderTask = null;
+        safetyTaskCancel(rentalExpiryTask);
+        rentalExpiryTask = null;
 
         ConfirmCommand.clearConfirms();
     }
