@@ -28,6 +28,7 @@ public final class RegionMembers {
             return RemoveResult.NOT_MEMBER;
         }
         region.getMembers().removePlayer(target);
+        RegionRentals.removeEntry(region, target);
         return RemoveResult.REMOVED;
     }
 }

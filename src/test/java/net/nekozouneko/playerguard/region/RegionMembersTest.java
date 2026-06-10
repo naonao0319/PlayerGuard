@@ -55,6 +55,17 @@ class RegionMembersTest {
     }
 
     @Test
+    void removeClearsRentalEntry() {
+        ProtectedRegion r = newRegion();
+        UUID u = UUID.randomUUID();
+        RegionRentals.rent(r, u, 3_600_000L, 0);
+
+        assertEquals(RegionMembers.RemoveResult.REMOVED, RegionMembers.remove(r, u));
+        assertFalse(r.getMembers().contains(u));
+        assertFalse(RegionRentals.isRental(r, u));
+    }
+
+    @Test
     void removeMissingMemberReports() {
         ProtectedRegion r = newRegion();
         assertEquals(RegionMembers.RemoveResult.NOT_MEMBER, RegionMembers.remove(r, UUID.randomUUID()));
