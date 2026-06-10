@@ -45,16 +45,18 @@ public class DeleteSectionCommand extends SubCommand {
                 .filter(pr -> StateFlag.test(pr.getFlag(PlayerGuard.getGuardRegisteredFlag())))
                 .collect(Collectors.toList());
 
-        ConfirmCommand.addConfirm(p.getUniqueId(), () -> {
-            result.forEach(pr -> {
-                rm.removeRegion(pr.getId());
-                sender.sendMessage(String.format(
-                        ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "保護領域「%s」を削除しました。", pr.getId()
-                ));
-            });
+        ConfirmCommand.addConfirm(p.getUniqueId(), () ->
+            PlayerGuard.getInstance().getScheduler().runGlobal(() -> {
+                result.forEach(pr -> {
+                    rm.removeRegion(pr.getId());
+                    sender.sendMessage(String.format(
+                            ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "保護領域「%s」を削除しました。", pr.getId()
+                    ));
+                });
 
-            sender.sendMessage(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "選択された保護領域の削除が完了しました。");
-        });
+                sender.sendMessage(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "選択された保護領域の削除が完了しました。");
+            })
+        );
 
         sender.sendMessage(ChatColor.GOLD + "■ " + ChatColor.YELLOW + "削除するには/playerguard confirmを実行してください。");
 
