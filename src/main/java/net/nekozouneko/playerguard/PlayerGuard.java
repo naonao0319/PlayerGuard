@@ -2,7 +2,9 @@ package net.nekozouneko.playerguard;
 
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.flags.Flag;
+import com.sk89q.worldguard.protection.flags.SetFlag;
 import com.sk89q.worldguard.protection.flags.StateFlag;
+import com.sk89q.worldguard.protection.flags.StringFlag;
 import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
 import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
 import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
@@ -13,6 +15,7 @@ import net.nekozouneko.playerguard.command.*;
 import net.nekozouneko.playerguard.command.sub.playerguard.ConfirmCommand;
 import net.nekozouneko.playerguard.flag.GuardIgnoredFlag;
 import net.nekozouneko.playerguard.flag.GuardRegisteredFlag;
+import net.nekozouneko.playerguard.flag.PGCustomFlags;
 import net.nekozouneko.playerguard.listener.PlayerChangedWorldListener;
 import net.nekozouneko.playerguard.listener.PlayerInteractListener;
 import net.nekozouneko.playerguard.selection.SelectionStorage;
@@ -64,6 +67,30 @@ public final class PlayerGuard extends JavaPlugin {
             Flag<?> alreadyRegistered = registry.get("pguard-ignored");
             if (alreadyRegistered instanceof GuardIgnoredFlag) {
                 guardIgnoredFlag = (GuardIgnoredFlag) alreadyRegistered;
+            }
+            else throw fce;
+        }
+
+        try {
+            registry.register(PGCustomFlags.PRIMARY_OWNER);
+        }
+        catch (FlagConflictException fce) {
+            Flag<?> alreadyRegistered = registry.get("pg-primary-owner");
+            if (alreadyRegistered instanceof StringFlag) {
+                PGCustomFlags.PRIMARY_OWNER = (StringFlag) alreadyRegistered;
+            }
+            else throw fce;
+        }
+
+        try {
+            registry.register(PGCustomFlags.RENTALS);
+        }
+        catch (FlagConflictException fce) {
+            Flag<?> alreadyRegistered = registry.get("pg-rentals");
+            if (alreadyRegistered instanceof SetFlag) {
+                @SuppressWarnings("unchecked")
+                SetFlag<String> sf = (SetFlag<String>) alreadyRegistered;
+                PGCustomFlags.RENTALS = sf;
             }
             else throw fce;
         }
