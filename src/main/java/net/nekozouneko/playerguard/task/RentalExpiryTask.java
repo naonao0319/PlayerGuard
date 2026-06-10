@@ -4,18 +4,19 @@ import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
+import net.nekozouneko.playerguard.PlayerGuard;
 import net.nekozouneko.playerguard.flag.PGCustomFlags;
 import net.nekozouneko.playerguard.region.RegionRentals;
+import net.nekozouneko.playerguard.scheduler.PGScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-public class RentalExpiryTask extends BukkitRunnable {
+public class RentalExpiryTask implements Runnable {
 
     @Override
     public void run() {
@@ -33,19 +34,22 @@ public class RentalExpiryTask extends BukkitRunnable {
     }
 
     private void notifyExpiry(ProtectedRegion region, UUID borrower) {
+        PGScheduler scheduler = PlayerGuard.getInstance().getScheduler();
         String borrowerName = Bukkit.getOfflinePlayer(borrower).getName();
         if (borrowerName == null) borrowerName = borrower.toString();
+        final String bName = borrowerName;
+        final String regionId = region.getId();
 
         Player b = Bukkit.getPlayer(borrower);
         if (b != null) {
-            b.sendMessage(String.format(ChatColor.GOLD + "■ " + ChatColor.YELLOW
-                    + "「%s」の貸出期限が切れました。", region.getId()));
+            scheduler.runOnEntity(b, () -> b.sendMessage(String.format(ChatColor.GOLD + "■ " + ChatColor.YELLOW
+                    + "「%s」の貸出期限が切れました。", regionId)));
         }
         for (UUID owner : region.getOwners().getUniqueIds()) {
             Player o = Bukkit.getPlayer(owner);
             if (o != null) {
-                o.sendMessage(String.format(ChatColor.GOLD + "■ " + ChatColor.YELLOW
-                        + "「%s」の%sへの貸出期限が切れたため、自動解除しました。", region.getId(), borrowerName));
+                scheduler.runOnEntity(o, () -> o.sendMessage(String.format(ChatColor.GOLD + "■ " + ChatColor.YELLOW
+                        + "「%s」の%sへの貸出期限が切れたため、自動解除しました。", regionId, bName)));
             }
         }
     }
