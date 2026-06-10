@@ -4,6 +4,9 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.nekozouneko.commons.spigot.inventory.ItemStackBuilder;
 import net.nekozouneko.playerguard.command.sub.playerguard.TransferCommand;
 import net.nekozouneko.playerguard.region.RegionMembers;
+import net.nekozouneko.playerguard.region.RegionRentals;
+import net.nekozouneko.playerguard.region.RegionRoles;
+import net.nekozouneko.playerguard.region.RegionRoles.Role;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,13 +18,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 領域メンバーの一覧・削除・追加・譲渡を行うGUI。
- */
 public class MemberGUI extends AbstractGUI {
 
     private static final int SIZE = 54;
-    private static final int SLOT_ADD = 48;
+    private static final int SLOT_ADD = 46;
+    private static final int SLOT_RENT = 48;
     private static final int SLOT_TRANSFER = 50;
     private static final int SLOT_BACK = 53;
 
@@ -40,30 +41,53 @@ public class MemberGUI extends AbstractGUI {
         inventory.clear();
         memberSlots.clear();
 
+        long now = System.currentTimeMillis();
         int slot = 0;
+        for (UUID uuid : region.getOwners().getUniqueIds()) {
+            if (RegionRoles.roleOf(region, uuid) != Role.CO_OWNER) continue;
+            if (slot >= SIZE - 9) break;
+            inventory.setItem(slot, memberHead(uuid, ChatColor.GOLD, "共同オーナー", null));
+            memberSlots.add(uuid);
+            slot++;
+        }
         for (UUID uuid : region.getMembers().getUniqueIds()) {
             if (slot >= SIZE - 9) break;
-            OfflinePlayer op = Bukkit.getOfflinePlayer(uuid);
-            ItemStack head = ItemStackBuilder.of(Material.PLAYER_HEAD)
-                    .name(ChatColor.WHITE + (op.getName() != null ? op.getName() : uuid.toString()))
-                    .lore(ChatColor.GRAY + "クリックで削除")
-                    .build();
-            if (head.getItemMeta() instanceof SkullMeta) {
-                SkullMeta sm = (SkullMeta) head.getItemMeta();
-                sm.setOwningPlayer(op);
-                head.setItemMeta(sm);
-            }
-            inventory.setItem(slot, head);
+            Long expiry = RegionRentals.getExpiry(region, uuid);
+            String rentalLore = expiry != null
+                    ? "貸出中: あと" + RegionRentals.formatRemaining(expiry - now) : null;
+            inventory.setItem(slot, memberHead(uuid, ChatColor.WHITE, "builder", rentalLore));
             memberSlots.add(uuid);
             slot++;
         }
 
         inventory.setItem(SLOT_ADD, ItemStackBuilder.of(Material.LIME_DYE)
                 .name(ChatColor.GREEN + "メンバーを追加").build());
-        inventory.setItem(SLOT_TRANSFER, ItemStackBuilder.of(Material.GOLDEN_APPLE)
-                .name(ChatColor.GOLD + "領域を譲渡").build());
+        inventory.setItem(SLOT_RENT, ItemStackBuilder.of(Material.CLOCK)
+                .name(ChatColor.YELLOW + "建築権を貸し出す").build());
+        if (RegionRoles.isPrimaryOwner(region, getPlayer().getUniqueId())) {
+            inventory.setItem(SLOT_TRANSFER, ItemStackBuilder.of(Material.GOLDEN_APPLE)
+                    .name(ChatColor.GOLD + "領域を譲渡").build());
+        }
         inventory.setItem(SLOT_BACK, ItemStackBuilder.of(Material.ARROW)
                 .name(ChatColor.WHITE + "戻る").build());
+    }
+
+    private ItemStack memberHead(UUID uuid, ChatColor nameColor, String roleLabel, String extraLore) {
+        OfflinePlayer op = Bukkit.getOfflinePlayer(uuid);
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + roleLabel);
+        if (extraLore != null) lore.add(ChatColor.YELLOW + extraLore);
+        lore.add(ChatColor.GRAY + "クリックで操作");
+        ItemStack head = ItemStackBuilder.of(Material.PLAYER_HEAD)
+                .name(nameColor + (op.getName() != null ? op.getName() : uuid.toString()))
+                .lore(lore.toArray(new String[0]))
+                .build();
+        if (head.getItemMeta() instanceof SkullMeta) {
+            SkullMeta sm = (SkullMeta) head.getItemMeta();
+            sm.setOwningPlayer(op);
+            head.setItemMeta(sm);
+        }
+        return head;
     }
 
     @EventHandler
@@ -82,19 +106,22 @@ public class MemberGUI extends AbstractGUI {
             openAddSelector();
             return;
         }
+        if (slot == SLOT_RENT) {
+            openRentSelector();
+            return;
+        }
         if (slot == SLOT_TRANSFER) {
-            openTransferSelector();
+            if (RegionRoles.isPrimaryOwner(region, getPlayer().getUniqueId())) {
+                openTransferSelector();
+            }
             return;
         }
         if (slot < memberSlots.size()) {
-            UUID target = memberSlots.get(slot);
-            RegionMembers.remove(region, target);
-            getPlayer().playSound(getPlayer().getLocation(), Sound.UI_BUTTON_CLICK, 10, 1);
-            init();
+            new MemberActionGUI(getPlayer(), this, region, memberSlots.get(slot)).open();
         }
     }
 
-    private void openAddSelector() {
+    private List<OfflinePlayer> nonMemberCandidates() {
         List<OfflinePlayer> candidates = new ArrayList<>();
         for (Player online : Bukkit.getOnlinePlayers()) {
             UUID u = online.getUniqueId();
@@ -103,10 +130,25 @@ public class MemberGUI extends AbstractGUI {
             if (region.getMembers().contains(u)) continue;
             candidates.add(online);
         }
+        return candidates;
+    }
+
+    private void openAddSelector() {
+        List<OfflinePlayer> candidates = nonMemberCandidates();
         new PlayerSelectGUI(getPlayer(), this, "■ 追加するプレイヤー", candidates, uuid -> {
             RegionMembers.add(region, uuid);
             getPlayer().playSound(getPlayer().getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 10, 2);
             open();
+        }).open();
+    }
+
+    private void openRentSelector() {
+        List<OfflinePlayer> candidates = nonMemberCandidates();
+        new PlayerSelectGUI(getPlayer(), this, "■ 貸出先プレイヤー", candidates, uuid -> {
+            Player t = Bukkit.getPlayer(uuid);
+            String name = t != null ? t.getName() : Bukkit.getOfflinePlayer(uuid).getName();
+            new RentalDurationGUI(getPlayer(), this, region, uuid,
+                    name != null ? name : uuid.toString()).open();
         }).open();
     }
 
