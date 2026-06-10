@@ -39,6 +39,10 @@ public class VisitorLogGUI extends AbstractGUI {
 
     @Override
     public void init() {
+        if (PlayerGuard.getInstance().getVisitorLogService() == null) {
+            getPlayer().closeInventory();
+            return;
+        }
         if (inventory == null)
             inventory = Bukkit.createInventory(this, SIZE, "■ 訪問者ログ: " + region.getId());
         inventory.clear();
@@ -118,4 +122,3 @@ public class VisitorLogGUI extends AbstractGUI {
         }
     }
 }
-

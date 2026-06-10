@@ -7,6 +7,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import net.md_5.bungee.api.ChatColor;
 import net.nekozouneko.commons.spigot.command.TabCompletes;
+import net.nekozouneko.playerguard.PGConfig;
 import net.nekozouneko.playerguard.PGUtil;
 import net.nekozouneko.playerguard.PlayerGuard;
 import net.nekozouneko.playerguard.command.sub.SubCommand;
@@ -55,8 +56,11 @@ public class TransferCommand extends SubCommand {
             return true;
         }
 
-        if (!RegionRoles.isPrimaryOwner(region, player.getUniqueId())) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"領域の譲渡は主オーナーのみ可能です。");
+        if (!canTransfer(region, player.getUniqueId())) {
+            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED
+                    + (PGConfig.allowSubownerTransfer()
+                    ? "領域の譲渡は主オーナーまたはsubownerのみ可能です。"
+                    : "領域の譲渡は主オーナーのみ可能です。"));
             return true;
         }
 
@@ -90,7 +94,8 @@ public class TransferCommand extends SubCommand {
             region.getOwners().clear();
             region.getMembers().clear();
             region.setFlag(PGCustomFlags.RENTALS, null);
-            PlayerGuard.getInstance().getVisitorLogService().clearByRegionId(region.getId());
+            if (PlayerGuard.getInstance().getVisitorLogService() != null)
+                PlayerGuard.getInstance().getVisitorLogService().clearByRegionId(region.getId());
             region.getOwners().addPlayer(transferTo.getUniqueId());
             RegionRoles.setPrimaryOwner(region, transferTo.getUniqueId());
             transferTo.sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "%sを%sに移管をしました。", region.getId(), transferTo.getName()));
@@ -131,5 +136,10 @@ public class TransferCommand extends SubCommand {
     @Override
     public String getPermission() {
         return "playerguard.command.playerguard";
+    }
+
+    private static boolean canTransfer(ProtectedRegion region, UUID uuid) {
+        if (RegionRoles.isPrimaryOwner(region, uuid)) return true;
+        return RegionRoles.roleOf(region, uuid) == RegionRoles.Role.SUB_OWNER && PGConfig.allowSubownerTransfer();
     }
 }

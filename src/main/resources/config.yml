@@ -20,3 +20,21 @@ protection:
   spacing:
     min-spacing-between-regions: 0
     apply-to-same-player-s-region: false
+
+visitor-log:
+  enabled: true
+  max-entries-per-region: 100
+  flush-interval-seconds: 60
+  target: visitors-only
+  events:
+    enter-exit: true
+    break: true
+    place: true
+    interact: true
+  permissions:
+    allow-subowner-view: true
+    allow-builder-view: false
+
+permissions:
+  allow-subowner-transfer: false
+  allow-subowner-disclaim: false

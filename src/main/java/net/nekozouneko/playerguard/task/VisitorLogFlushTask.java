@@ -1,6 +1,5 @@
 package net.nekozouneko.playerguard.task;
 
-import net.nekozouneko.playerguard.PlayerGuard;
 import net.nekozouneko.playerguard.visitlog.VisitorLogService;
 import org.bukkit.scheduler.BukkitRunnable;
 

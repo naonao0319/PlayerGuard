@@ -91,6 +91,8 @@ GUI の「フラグ設定」から、各項目を **許可 → 拒否 → 設定
 - `protection.limit` … プレイ日数に応じた保護できる総体積の上限
 - `protection.flags` … 各フラグの既定値（`false` にするとそのフラグを GUI から操作不可にできます）
 - `protection.spacing` … 領域同士の最小間隔
+- `visitor-log` … 訪問者ログ（有効/無効、保持件数、保存間隔、記録対象/イベント、閲覧権限）
+- `permissions` … ロール関連の権限制御（例: subownerに譲渡/削除を許可するか）
 
 ## ビルド
 Maven でビルドできます。Minecraft 1.21 系に対応するため **JDK 21** が必要です。

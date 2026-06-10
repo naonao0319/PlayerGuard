@@ -2,6 +2,7 @@ package net.nekozouneko.playerguard.gui;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.nekozouneko.commons.spigot.inventory.ItemStackBuilder;
+import net.nekozouneko.playerguard.PGConfig;
 import net.nekozouneko.playerguard.PlayerGuard;
 import net.nekozouneko.playerguard.region.RegionRoles;
 import org.bukkit.Bukkit;
@@ -47,6 +48,8 @@ public class RegionHubGUI extends AbstractGUI {
         if (primary == null) primaryLabel = "(未設定)";
         else primaryLabel = primaryName != null ? primaryName : primary.toString();
 
+        boolean showVisitorLog = PlayerGuard.getInstance().getVisitorLogService() != null && canViewVisitorLog();
+
         inventory.setItem(SLOT_FLAGS, ItemStackBuilder.of(Material.REDSTONE_TORCH)
                 .name(ChatColor.WHITE + "フラグ設定").build());
         inventory.setItem(SLOT_MEMBERS, ItemStackBuilder.of(Material.PLAYER_HEAD)
@@ -62,8 +65,10 @@ public class RegionHubGUI extends AbstractGUI {
                         ChatColor.GRAY + "オーナー数: " + ChatColor.WHITE + region.getOwners().size(),
                         ChatColor.GRAY + "メンバー数: " + ChatColor.WHITE + region.getMembers().size()
                 ).build());
-        inventory.setItem(SLOT_VISITOR_LOG, ItemStackBuilder.of(Material.BOOK)
-                .name(ChatColor.WHITE + "訪問者ログ").build());
+        if (showVisitorLog) {
+            inventory.setItem(SLOT_VISITOR_LOG, ItemStackBuilder.of(Material.BOOK)
+                    .name(ChatColor.WHITE + "訪問者ログ").build());
+        }
         inventory.setItem(SLOT_CLOSE, ItemStackBuilder.of(Material.BARRIER)
                 .name(ChatColor.RED + "閉じる").build());
     }
@@ -81,7 +86,8 @@ public class RegionHubGUI extends AbstractGUI {
                 new MemberGUI(getPlayer(), this, region).open();
                 break;
             case SLOT_VISITOR_LOG:
-                new VisitorLogGUI(getPlayer(), this, region).open();
+                if (PlayerGuard.getInstance().getVisitorLogService() != null && canViewVisitorLog())
+                    new VisitorLogGUI(getPlayer(), this, region).open();
                 break;
             case SLOT_CLOSE:
                 getPlayer().closeInventory();
@@ -89,5 +95,13 @@ public class RegionHubGUI extends AbstractGUI {
             default:
                 break;
         }
+    }
+
+    private boolean canViewVisitorLog() {
+        RegionRoles.Role role = RegionRoles.roleOf(region, getPlayer().getUniqueId());
+        if (role == RegionRoles.Role.PRIMARY_OWNER) return true;
+        if (role == RegionRoles.Role.SUB_OWNER) return PGConfig.allowSubownerViewVisitorLog();
+        if (role == RegionRoles.Role.BUILDER) return PGConfig.allowBuilderViewVisitorLog();
+        return false;
     }
 }

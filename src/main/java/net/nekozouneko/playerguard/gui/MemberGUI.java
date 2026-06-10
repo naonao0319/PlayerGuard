@@ -2,6 +2,7 @@ package net.nekozouneko.playerguard.gui;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.nekozouneko.commons.spigot.inventory.ItemStackBuilder;
+import net.nekozouneko.playerguard.PGConfig;
 import net.nekozouneko.playerguard.command.sub.playerguard.TransferCommand;
 import net.nekozouneko.playerguard.region.RegionMembers;
 import net.nekozouneko.playerguard.region.RegionRentals;
@@ -64,7 +65,8 @@ public class MemberGUI extends AbstractGUI {
                 .name(ChatColor.GREEN + "メンバーを追加").build());
         inventory.setItem(SLOT_RENT, ItemStackBuilder.of(Material.CLOCK)
                 .name(ChatColor.YELLOW + "建築権を貸し出す").build());
-        if (RegionRoles.isPrimaryOwner(region, getPlayer().getUniqueId())) {
+        Role viewerRole = RegionRoles.roleOf(region, getPlayer().getUniqueId());
+        if (viewerRole == Role.PRIMARY_OWNER || (viewerRole == Role.SUB_OWNER && PGConfig.allowSubownerTransfer())) {
             inventory.setItem(SLOT_TRANSFER, ItemStackBuilder.of(Material.GOLDEN_APPLE)
                     .name(ChatColor.GOLD + "領域を譲渡").build());
         }
@@ -111,7 +113,8 @@ public class MemberGUI extends AbstractGUI {
             return;
         }
         if (slot == SLOT_TRANSFER) {
-            if (RegionRoles.isPrimaryOwner(region, getPlayer().getUniqueId())) {
+            Role viewerRole = RegionRoles.roleOf(region, getPlayer().getUniqueId());
+            if (viewerRole == Role.PRIMARY_OWNER || (viewerRole == Role.SUB_OWNER && PGConfig.allowSubownerTransfer())) {
                 openTransferSelector();
             }
             return;

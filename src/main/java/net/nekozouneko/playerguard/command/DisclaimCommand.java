@@ -6,7 +6,9 @@ import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import net.md_5.bungee.api.ChatColor;
+import net.nekozouneko.playerguard.PGConfig;
 import net.nekozouneko.playerguard.PGUtil;
+import net.nekozouneko.playerguard.PlayerGuard;
 import net.nekozouneko.playerguard.command.sub.playerguard.ConfirmCommand;
 import net.nekozouneko.playerguard.region.RegionRoles;
 import org.bukkit.command.Command;
@@ -58,14 +60,20 @@ public class DisclaimCommand implements CommandExecutor, TabCompleter {
         }
 
         if (!RegionRoles.isPrimaryOwner(pr, p.getUniqueId())) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"領域の削除は主オーナーのみ可能です。");
-            return true;
+            if (!(RegionRoles.roleOf(pr, p.getUniqueId()) == RegionRoles.Role.SUB_OWNER && PGConfig.allowSubownerDisclaim())) {
+                sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED
+                        + (PGConfig.allowSubownerDisclaim()
+                        ? "領域の削除は主オーナーまたはsubownerのみ可能です。"
+                        : "領域の削除は主オーナーのみ可能です。"));
+                return true;
+            }
         }
 
         final RegionManager manager = rm;
         final ProtectedRegion region = pr;
         ConfirmCommand.addConfirm(p.getUniqueId(), () -> {
-            net.nekozouneko.playerguard.PlayerGuard.getInstance().getVisitorLogService().clearByRegionId(region.getId());
+            if (PlayerGuard.getInstance().getVisitorLogService() != null)
+                PlayerGuard.getInstance().getVisitorLogService().clearByRegionId(region.getId());
             manager.removeRegion(region.getId());
 
             sender.sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "保護領域「%s」を削除しました。", region.getId()));

@@ -7,6 +7,7 @@ import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import net.nekozouneko.playerguard.PGConfig;
 import net.nekozouneko.playerguard.PlayerGuard;
 import net.nekozouneko.playerguard.region.RegionRoles;
 import net.nekozouneko.playerguard.visitlog.VisitorLogService;
@@ -34,13 +35,14 @@ public class VisitorLogListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onMove(PlayerMoveEvent e) {
+        if (!PGConfig.isVisitorLogEnterExitEnabled()) return;
         if (e.getTo() == null) return;
         if (e.getFrom().getBlockX() == e.getTo().getBlockX()
                 && e.getFrom().getBlockY() == e.getTo().getBlockY()
                 && e.getFrom().getBlockZ() == e.getTo().getBlockZ()) return;
 
         ProtectedRegion region = regionAt(e.getTo());
-        boolean isVisitor = isVisitor(region, e.getPlayer().getUniqueId());
+        boolean isVisitor = isTarget(region, e.getPlayer().getUniqueId());
         String worldName = e.getPlayer().getWorld().getName();
         String regionId = region != null ? region.getId() : null;
         service.trackRegion(e.getPlayer().getUniqueId(), worldName, regionId, isVisitor);
@@ -48,39 +50,44 @@ public class VisitorLogListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onQuit(PlayerQuitEvent e) {
-        service.trackRegion(e.getPlayer().getUniqueId(), e.getPlayer().getWorld().getName(), null, false);
+        if (PGConfig.isVisitorLogEnterExitEnabled())
+            service.trackRegion(e.getPlayer().getUniqueId(), e.getPlayer().getWorld().getName(), null, false);
         service.forget(e.getPlayer().getUniqueId());
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onChangedWorld(PlayerChangedWorldEvent e) {
-        service.trackRegion(e.getPlayer().getUniqueId(), e.getFrom().getName(), null, false);
+        if (PGConfig.isVisitorLogEnterExitEnabled())
+            service.trackRegion(e.getPlayer().getUniqueId(), e.getFrom().getName(), null, false);
         service.forget(e.getPlayer().getUniqueId());
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onBreak(BlockBreakEvent e) {
+        if (!PGConfig.isVisitorLogBreakEnabled()) return;
         ProtectedRegion region = regionAt(e.getBlock().getLocation());
-        if (!isVisitor(region, e.getPlayer().getUniqueId())) return;
+        if (!isTarget(region, e.getPlayer().getUniqueId())) return;
         service.logAction(e.getBlock().getWorld().getName(), region.getId(), VisitorLogType.BREAK,
                 e.getPlayer().getUniqueId(), formatBlock(e.getBlock().getType(), e.getBlock().getLocation()));
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent e) {
+        if (!PGConfig.isVisitorLogPlaceEnabled()) return;
         ProtectedRegion region = regionAt(e.getBlockPlaced().getLocation());
-        if (!isVisitor(region, e.getPlayer().getUniqueId())) return;
+        if (!isTarget(region, e.getPlayer().getUniqueId())) return;
         service.logAction(e.getBlockPlaced().getWorld().getName(), region.getId(), VisitorLogType.PLACE,
                 e.getPlayer().getUniqueId(), formatBlock(e.getBlockPlaced().getType(), e.getBlockPlaced().getLocation()));
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent e) {
+        if (!PGConfig.isVisitorLogInteractEnabled()) return;
         if (e.getClickedBlock() == null) return;
         if (!isLoggedInteract(e.getClickedBlock().getType())) return;
 
         ProtectedRegion region = regionAt(e.getClickedBlock().getLocation());
-        if (!isVisitor(region, e.getPlayer().getUniqueId())) return;
+        if (!isTarget(region, e.getPlayer().getUniqueId())) return;
         service.logAction(e.getClickedBlock().getWorld().getName(), region.getId(), VisitorLogType.INTERACT,
                 e.getPlayer().getUniqueId(), formatBlock(e.getClickedBlock().getType(), e.getClickedBlock().getLocation()));
     }
@@ -96,9 +103,14 @@ public class VisitorLogListener implements Listener {
                 .findFirst().orElse(null);
     }
 
-    private boolean isVisitor(ProtectedRegion region, UUID uuid) {
+    private boolean isTarget(ProtectedRegion region, UUID uuid) {
         if (region == null || uuid == null) return false;
-        return RegionRoles.roleOf(region, uuid) == RegionRoles.Role.NONE;
+        String target = PGConfig.getVisitorLogTarget();
+        RegionRoles.Role role = RegionRoles.roleOf(region, uuid);
+        if ("include-all".equals(target)) return true;
+        if ("include-builders".equals(target))
+            return role == RegionRoles.Role.BUILDER || role == RegionRoles.Role.NONE;
+        return role == RegionRoles.Role.NONE;
     }
 
     private boolean isLoggedInteract(Material type) {

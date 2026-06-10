@@ -10,15 +10,15 @@ import java.util.*;
 
 public class VisitorLogService {
 
-    private static final int MAX_ENTRIES_PER_REGION = 100;
-
     private final File file;
+    private final int maxEntriesPerRegion;
     private final Map<String, Deque<String>> logsByRegionKey = new HashMap<>();
     private final Map<UUID, String> lastVisitorRegionKeyByPlayer = new HashMap<>();
     private boolean dirty;
 
-    public VisitorLogService(PlayerGuard plugin) {
+    public VisitorLogService(PlayerGuard plugin, int maxEntriesPerRegion) {
         this.file = new File(plugin.getDataFolder(), "visitor-log.yml");
+        this.maxEntriesPerRegion = maxEntriesPerRegion;
         load();
     }
 
@@ -125,7 +125,7 @@ public class VisitorLogService {
             logsByRegionKey.put(key, dq);
         }
         dq.addLast(entry.encode());
-        while (dq.size() > MAX_ENTRIES_PER_REGION) dq.removeFirst();
+        while (dq.size() > maxEntriesPerRegion) dq.removeFirst();
         dirty = true;
     }
 

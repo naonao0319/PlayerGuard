@@ -112,12 +112,17 @@ public final class PlayerGuard extends JavaPlugin {
         getConfig().options().copyDefaults(true);
         PGConfig.setConfig(getConfig());
 
-        visitorLogService = new VisitorLogService(this);
+        if (PGConfig.isVisitorLogEnabled()) {
+            visitorLogService = new VisitorLogService(this, PGConfig.getVisitorLogMaxEntriesPerRegion());
+        } else {
+            visitorLogService = null;
+        }
         selectionStorage = new SelectionStorage();
 
         getServer().getPluginManager().registerEvents(new PlayerChangedWorldListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerInteractListener(), this);
-        getServer().getPluginManager().registerEvents(new VisitorLogListener(visitorLogService), this);
+        if (visitorLogService != null)
+            getServer().getPluginManager().registerEvents(new VisitorLogListener(visitorLogService), this);
 
         regionActionbarTask = new ActionbarTask();
         regionActionbarTask.runTaskTimer(this, 0, 20);
@@ -125,8 +130,12 @@ public final class PlayerGuard extends JavaPlugin {
         selectionRenderTask.runTaskTimer(this, 0, 10);
         rentalExpiryTask = new RentalExpiryTask();
         rentalExpiryTask.runTaskTimer(this, 20L * 60, 20L * 60);
-        visitorLogFlushTask = new VisitorLogFlushTask(visitorLogService);
-        visitorLogFlushTask.runTaskTimer(this, 20L * 60, 20L * 60);
+        if (visitorLogService != null) {
+            visitorLogFlushTask = new VisitorLogFlushTask(visitorLogService);
+            visitorLogFlushTask.runTaskTimer(this, PGConfig.getVisitorLogFlushIntervalTicks(), PGConfig.getVisitorLogFlushIntervalTicks());
+        } else {
+            visitorLogFlushTask = null;
+        }
 
         getCommand("cancel-claim").setExecutor(new CancelCommand());
         getCommand("claim").setExecutor(new ClaimCommand());
