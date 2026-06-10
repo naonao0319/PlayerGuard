@@ -14,17 +14,17 @@ public class ConfirmCommand extends SubCommand {
     private final static Map<UUID, Runnable> confirms = new HashMap<>();
     private final static Map<UUID, Long> timeouts = new HashMap<>();
 
-    public static void addConfirm(UUID player, Runnable runnable) {
+    public static synchronized void addConfirm(UUID player, Runnable runnable) {
         confirms.put(player, runnable);
         timeouts.put(player, System.currentTimeMillis() + 60000);
     }
 
-    public static void removeConfirm(UUID player) {
+    public static synchronized void removeConfirm(UUID player) {
         confirms.remove(player);
         timeouts.remove(player);
     }
 
-    public static Runnable getConfirm(UUID player) {
+    public static synchronized Runnable getConfirm(UUID player) {
         Runnable task = confirms.get(player);
         Long timeout = timeouts.get(player);
 
@@ -36,7 +36,7 @@ public class ConfirmCommand extends SubCommand {
         return task;
     }
 
-    public static Map<UUID, Runnable> getConfirms() {
+    public static synchronized Map<UUID, Runnable> getConfirms() {
         new HashSet<>(confirms.keySet()).forEach(uuid -> {
             Long timeout = timeouts.get(uuid);
             if (timeout == null || System.currentTimeMillis() > timeout) {
@@ -47,7 +47,7 @@ public class ConfirmCommand extends SubCommand {
         return new HashMap<>(confirms);
     }
 
-    public static void clearConfirms() {
+    public static synchronized void clearConfirms() {
         confirms.clear();
         timeouts.clear();
     }
