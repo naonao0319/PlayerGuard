@@ -1,9 +1,8 @@
 package net.nekozouneko.playerguard.task;
 
 import net.nekozouneko.playerguard.visitlog.VisitorLogService;
-import org.bukkit.scheduler.BukkitRunnable;
 
-public class VisitorLogFlushTask extends BukkitRunnable {
+public class VisitorLogFlushTask implements Runnable {
 
     private final VisitorLogService service;
 
