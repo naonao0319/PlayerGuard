@@ -29,7 +29,7 @@ class RegionRolesTest {
         r.setFlag(PGCustomFlags.PRIMARY_OWNER, a.toString());
 
         assertEquals(RegionRoles.Role.PRIMARY_OWNER, RegionRoles.roleOf(r, a));
-        assertEquals(RegionRoles.Role.CO_OWNER, RegionRoles.roleOf(r, b));
+        assertEquals(RegionRoles.Role.SUB_OWNER, RegionRoles.roleOf(r, b));
         assertTrue(RegionRoles.isPrimaryOwner(r, a));
         assertFalse(RegionRoles.isPrimaryOwner(r, b));
     }
@@ -89,7 +89,7 @@ class RegionRolesTest {
         assertEquals(RegionRoles.PromoteResult.PROMOTED, RegionRoles.promote(r, m));
         assertTrue(r.getOwners().contains(m));
         assertFalse(r.getMembers().contains(m));
-        assertEquals(RegionRoles.Role.CO_OWNER, RegionRoles.roleOf(r, m));
+        assertEquals(RegionRoles.Role.SUB_OWNER, RegionRoles.roleOf(r, m));
     }
 
     @Test

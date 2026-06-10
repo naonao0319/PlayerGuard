@@ -44,9 +44,9 @@ public class MemberGUI extends AbstractGUI {
         long now = System.currentTimeMillis();
         int slot = 0;
         for (UUID uuid : region.getOwners().getUniqueIds()) {
-            if (RegionRoles.roleOf(region, uuid) != Role.CO_OWNER) continue;
+            if (RegionRoles.roleOf(region, uuid) != Role.SUB_OWNER) continue;
             if (slot >= SIZE - 9) break;
-            inventory.setItem(slot, memberHead(uuid, ChatColor.GOLD, "共同オーナー", null));
+            inventory.setItem(slot, memberHead(uuid, ChatColor.GOLD, "subowner", null));
             memberSlots.add(uuid);
             slot++;
         }

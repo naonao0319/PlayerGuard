@@ -46,18 +46,18 @@ public class MemberActionGUI extends AbstractGUI {
     }
 
     private boolean canDemote(Role viewer, Role targetRole) {
-        return viewer == Role.PRIMARY_OWNER && targetRole == Role.CO_OWNER;
+        return viewer == Role.PRIMARY_OWNER && targetRole == Role.SUB_OWNER;
     }
 
     private boolean canCancelRental(Role viewer, boolean rental) {
-        return rental && (viewer == Role.PRIMARY_OWNER || viewer == Role.CO_OWNER);
+        return rental && (viewer == Role.PRIMARY_OWNER || viewer == Role.SUB_OWNER);
     }
 
     private boolean canRemove(Role viewer, Role targetRole, boolean rental) {
         if (rental) return false;
         if (viewer == Role.PRIMARY_OWNER)
-            return targetRole == Role.CO_OWNER || targetRole == Role.BUILDER;
-        return viewer == Role.CO_OWNER && targetRole == Role.BUILDER;
+            return targetRole == Role.SUB_OWNER || targetRole == Role.BUILDER;
+        return viewer == Role.SUB_OWNER && targetRole == Role.BUILDER;
     }
 
     @Override
@@ -84,7 +84,7 @@ public class MemberActionGUI extends AbstractGUI {
 
         if (canPromote(viewer, targetRole, rental)) {
             inventory.setItem(SLOT_PROMOTE, ItemStackBuilder.of(Material.EMERALD)
-                    .name(ChatColor.GREEN + "co-ownerに昇格").build());
+                    .name(ChatColor.GREEN + "subownerに昇格").build());
         }
         if (canDemote(viewer, targetRole)) {
             inventory.setItem(SLOT_DEMOTE, ItemStackBuilder.of(Material.GUNPOWDER)
@@ -110,7 +110,7 @@ public class MemberActionGUI extends AbstractGUI {
         if (rental) return "貸出中builder";
         switch (role) {
             case PRIMARY_OWNER: return "主オーナー";
-            case CO_OWNER: return "共同オーナー";
+            case SUB_OWNER: return "subowner";
             case BUILDER: return "builder";
             default: return "非メンバー";
         }
@@ -130,7 +130,7 @@ public class MemberActionGUI extends AbstractGUI {
                 if (canPromote(viewer, targetRole, rental)
                         && RegionRoles.promote(region, target) == RegionRoles.PromoteResult.PROMOTED) {
                     getPlayer().sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN
-                            + "%sをco-ownerに昇格しました。", targetName()));
+                            + "%sをsubownerに昇格しました。", targetName()));
                     clickFeedbackAndBack();
                 } else init();
                 break;

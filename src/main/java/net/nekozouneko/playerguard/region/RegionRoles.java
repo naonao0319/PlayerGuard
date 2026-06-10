@@ -7,13 +7,13 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * 領域ロール(主オーナー/co-owner/builder)のコアロジック。
+ * 領域ロール(主オーナー/subowner/builder)のコアロジック。
  * 主オーナーはカスタムフラグ pg-primary-owner で識別する。
  * Bukkit に依存せず単体テスト可能。
  */
 public final class RegionRoles {
 
-    public enum Role { PRIMARY_OWNER, CO_OWNER, BUILDER, NONE }
+    public enum Role { PRIMARY_OWNER, SUB_OWNER, BUILDER, NONE }
     public enum PromoteResult { PROMOTED, NOT_BUILDER, IS_RENTAL, INVALID }
     public enum DemoteResult { DEMOTED, NOT_CO_OWNER, INVALID }
     public enum RemoveRoleResult { REMOVED, NOT_REMOVABLE, INVALID }
@@ -47,13 +47,13 @@ public final class RegionRoles {
         if (region == null || uuid == null) return Role.NONE;
         if (region.getOwners().contains(uuid)) {
             UUID primary = getPrimaryOwner(region);
-            return (primary == null || primary.equals(uuid)) ? Role.PRIMARY_OWNER : Role.CO_OWNER;
+            return (primary == null || primary.equals(uuid)) ? Role.PRIMARY_OWNER : Role.SUB_OWNER;
         }
         if (region.getMembers().contains(uuid)) return Role.BUILDER;
         return Role.NONE;
     }
 
-    /** 譲渡・領域削除・co-owner任免が可能か(=主オーナーか)。レガシー(複数owner・未設定)は全owners可。 */
+    /** 譲渡・領域削除・subowner任免が可能か(=主オーナーか)。レガシー(複数owner・未設定)は全owners可。 */
     public static boolean isPrimaryOwner(ProtectedRegion region, UUID uuid) {
         return roleOf(region, uuid) == Role.PRIMARY_OWNER;
     }
@@ -64,7 +64,7 @@ public final class RegionRoles {
         region.setFlag(PGCustomFlags.PRIMARY_OWNER, uuid.toString());
     }
 
-    /** builder を co-owner へ昇格(members→owners)。貸出中builderは昇格不可。 */
+    /** builder を subowner へ昇格(members→owners)。貸出中builderは昇格不可。 */
     public static PromoteResult promote(ProtectedRegion region, UUID target) {
         if (region == null || target == null) return PromoteResult.INVALID;
         if (!region.getMembers().contains(target)) return PromoteResult.NOT_BUILDER;
@@ -76,20 +76,20 @@ public final class RegionRoles {
         return PromoteResult.PROMOTED;
     }
 
-    /** co-owner を builder へ降格(owners→members)。主オーナーは降格不可。 */
+    /** subowner を builder へ降格(owners→members)。主オーナーは降格不可。 */
     public static DemoteResult demote(ProtectedRegion region, UUID target) {
         if (region == null || target == null) return DemoteResult.INVALID;
-        if (roleOf(region, target) != Role.CO_OWNER) return DemoteResult.NOT_CO_OWNER;
+        if (roleOf(region, target) != Role.SUB_OWNER) return DemoteResult.NOT_CO_OWNER;
         region.getOwners().removePlayer(target);
         region.getMembers().addPlayer(target);
         return DemoteResult.DEMOTED;
     }
 
-    /** co-owner/builder を領域から外す。主オーナー・非メンバーには使えない。 */
+    /** subowner/builder を領域から外す。主オーナー・非メンバーには使えない。 */
     public static RemoveRoleResult removeMember(ProtectedRegion region, UUID target) {
         if (region == null || target == null) return RemoveRoleResult.INVALID;
         switch (roleOf(region, target)) {
-            case CO_OWNER:
+            case SUB_OWNER:
                 region.getOwners().removePlayer(target);
                 return RemoveRoleResult.REMOVED;
             case BUILDER:
