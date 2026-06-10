@@ -90,6 +90,7 @@ public class TransferCommand extends SubCommand {
             region.getOwners().clear();
             region.getMembers().clear();
             region.setFlag(PGCustomFlags.RENTALS, null);
+            PlayerGuard.getInstance().getVisitorLogService().clearByRegionId(region.getId());
             region.getOwners().addPlayer(transferTo.getUniqueId());
             RegionRoles.setPrimaryOwner(region, transferTo.getUniqueId());
             transferTo.sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "%sを%sに移管をしました。", region.getId(), transferTo.getName()));

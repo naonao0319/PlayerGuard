@@ -65,6 +65,7 @@ public class DisclaimCommand implements CommandExecutor, TabCompleter {
         final RegionManager manager = rm;
         final ProtectedRegion region = pr;
         ConfirmCommand.addConfirm(p.getUniqueId(), () -> {
+            net.nekozouneko.playerguard.PlayerGuard.getInstance().getVisitorLogService().clearByRegionId(region.getId());
             manager.removeRegion(region.getId());
 
             sender.sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "保護領域「%s」を削除しました。", region.getId()));
