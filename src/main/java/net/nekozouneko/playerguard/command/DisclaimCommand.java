@@ -8,6 +8,7 @@ import com.sk89q.worldguard.protection.regions.RegionContainer;
 import net.md_5.bungee.api.ChatColor;
 import net.nekozouneko.playerguard.PGUtil;
 import net.nekozouneko.playerguard.command.sub.playerguard.ConfirmCommand;
+import net.nekozouneko.playerguard.region.RegionRoles;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -56,8 +57,8 @@ public class DisclaimCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (!pr.getOwners().contains(p.getUniqueId())) {
-            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"ここにはあなたが削除できる保護領域がありません。");
+        if (!RegionRoles.isPrimaryOwner(pr, p.getUniqueId())) {
+            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"領域の削除は主オーナーのみ可能です。");
             return true;
         }
 

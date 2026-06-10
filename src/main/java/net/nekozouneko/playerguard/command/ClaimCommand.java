@@ -17,6 +17,7 @@ import net.nekozouneko.playerguard.PGUtil;
 import net.nekozouneko.playerguard.PlayerGuard;
 import net.nekozouneko.playerguard.flag.GuardFlags;
 import net.nekozouneko.playerguard.flag.GuardRegisteredFlag;
+import net.nekozouneko.playerguard.region.RegionRoles;
 import net.nekozouneko.playerguard.selection.SelectionStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -85,6 +86,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 
         ProtectedRegion protect = new ProtectedCuboidRegion(id, cr.getPos1(), cr.getPos2());
         protect.getOwners().addPlayer(p.getUniqueId());
+        RegionRoles.setPrimaryOwner(protect, p.getUniqueId());
         GuardFlags.initRegionFlags(protect);
         protect.setFlag(PlayerGuard.getGuardRegisteredFlag(), StateFlag.State.ALLOW);
 

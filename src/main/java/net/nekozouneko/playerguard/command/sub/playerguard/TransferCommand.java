@@ -10,6 +10,8 @@ import net.nekozouneko.commons.spigot.command.TabCompletes;
 import net.nekozouneko.playerguard.PGUtil;
 import net.nekozouneko.playerguard.PlayerGuard;
 import net.nekozouneko.playerguard.command.sub.SubCommand;
+import net.nekozouneko.playerguard.flag.PGCustomFlags;
+import net.nekozouneko.playerguard.region.RegionRoles;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -53,6 +55,11 @@ public class TransferCommand extends SubCommand {
             return true;
         }
 
+        if (!RegionRoles.isPrimaryOwner(region, player.getUniqueId())) {
+            sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"領域の譲渡は主オーナーのみ可能です。");
+            return true;
+        }
+
         if (transferTo == null || transferTo.equals(player)) {
             sender.sendMessage(ChatColor.DARK_RED+"■ "+ChatColor.RED+"該当するプレイヤーはオンラインでないか、存在しません。");
             return true;
@@ -82,7 +89,9 @@ public class TransferCommand extends SubCommand {
             }
             region.getOwners().clear();
             region.getMembers().clear();
+            region.setFlag(PGCustomFlags.RENTALS, null);
             region.getOwners().addPlayer(transferTo.getUniqueId());
+            RegionRoles.setPrimaryOwner(region, transferTo.getUniqueId());
             transferTo.sendMessage(String.format(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "%sを%sに移管をしました。", region.getId(), transferTo.getName()));
         });
 
