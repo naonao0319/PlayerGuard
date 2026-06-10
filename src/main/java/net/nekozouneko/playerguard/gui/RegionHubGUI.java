@@ -27,7 +27,11 @@ public class RegionHubGUI extends AbstractGUI {
     private final ProtectedRegion region;
 
     public RegionHubGUI(Player player, ProtectedRegion region) {
-        super(player, null);
+        this(player, region, null);
+    }
+
+    public RegionHubGUI(Player player, ProtectedRegion region, AbstractGUI parent) {
+        super(player, parent);
         this.region = region;
     }
 

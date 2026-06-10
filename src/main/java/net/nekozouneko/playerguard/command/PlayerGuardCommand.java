@@ -42,7 +42,7 @@ public class PlayerGuardCommand implements CommandExecutor, TabCompleter {
             if (here != null && here.getOwners().contains(p.getUniqueId())) {
                 new net.nekozouneko.playerguard.gui.RegionHubGUI(p, here).open();
             } else {
-                myInfoCommand(p);
+                new net.nekozouneko.playerguard.gui.RegionListGUI(p).open();
             }
             return true;
         }
