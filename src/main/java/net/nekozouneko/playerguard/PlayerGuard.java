@@ -18,10 +18,13 @@ import net.nekozouneko.playerguard.flag.GuardRegisteredFlag;
 import net.nekozouneko.playerguard.flag.PGCustomFlags;
 import net.nekozouneko.playerguard.listener.PlayerChangedWorldListener;
 import net.nekozouneko.playerguard.listener.PlayerInteractListener;
+import net.nekozouneko.playerguard.listener.VisitorLogListener;
 import net.nekozouneko.playerguard.selection.SelectionStorage;
 import net.nekozouneko.playerguard.task.ActionbarTask;
 import net.nekozouneko.playerguard.task.RentalExpiryTask;
 import net.nekozouneko.playerguard.task.SelectionRenderTask;
+import net.nekozouneko.playerguard.task.VisitorLogFlushTask;
+import net.nekozouneko.playerguard.visitlog.VisitorLogService;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
@@ -41,9 +44,12 @@ public final class PlayerGuard extends JavaPlugin {
 
     @Getter
     private SelectionStorage selectionStorage;
+    @Getter
+    private VisitorLogService visitorLogService;
     private ActionbarTask regionActionbarTask;
     private SelectionRenderTask selectionRenderTask;
     private RentalExpiryTask rentalExpiryTask;
+    private VisitorLogFlushTask visitorLogFlushTask;
 
     @Override
     public void onLoad() {
@@ -106,10 +112,12 @@ public final class PlayerGuard extends JavaPlugin {
         getConfig().options().copyDefaults(true);
         PGConfig.setConfig(getConfig());
 
+        visitorLogService = new VisitorLogService(this);
         selectionStorage = new SelectionStorage();
 
         getServer().getPluginManager().registerEvents(new PlayerChangedWorldListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerInteractListener(), this);
+        getServer().getPluginManager().registerEvents(new VisitorLogListener(visitorLogService), this);
 
         regionActionbarTask = new ActionbarTask();
         regionActionbarTask.runTaskTimer(this, 0, 20);
@@ -117,6 +125,8 @@ public final class PlayerGuard extends JavaPlugin {
         selectionRenderTask.runTaskTimer(this, 0, 10);
         rentalExpiryTask = new RentalExpiryTask();
         rentalExpiryTask.runTaskTimer(this, 20L * 60, 20L * 60);
+        visitorLogFlushTask = new VisitorLogFlushTask(visitorLogService);
+        visitorLogFlushTask.runTaskTimer(this, 20L * 60, 20L * 60);
 
         getCommand("cancel-claim").setExecutor(new CancelCommand());
         getCommand("claim").setExecutor(new ClaimCommand());
@@ -136,6 +146,10 @@ public final class PlayerGuard extends JavaPlugin {
         selectionRenderTask = null;
         safetyTaskCancel(rentalExpiryTask);
         rentalExpiryTask = null;
+        safetyTaskCancel(visitorLogFlushTask);
+        visitorLogFlushTask = null;
+        if (visitorLogService != null) visitorLogService.save();
+        visitorLogService = null;
 
         ConfirmCommand.clearConfirms();
     }
