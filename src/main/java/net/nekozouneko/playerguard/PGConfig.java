@@ -2,6 +2,7 @@ package net.nekozouneko.playerguard;
 
 import net.nekozouneko.playerguard.flag.GuardFlags;
 import org.bukkit.configuration.Configuration;
+import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,10 +16,13 @@ public class PGConfig {
     }
 
     public static long getLimit(int day) {
-        Set<String> keys = config.getConfigurationSection("protection.limit").getKeys(false);
+        ConfigurationSection section = config.getConfigurationSection("protection.limit");
+        // protection.limit セクションが無い壊れた config でも NPE せず、
+        // 同梱デフォルト（getConfig() の defaults）へフォールバックさせる。
+        if (section == null) return config.getLong("protection.limit." + day);
 
         int nearest = 0;
-        for (String key : keys) {
+        for (String key : section.getKeys(false)) {
             try {
                 int parsed = Integer.parseInt(key);
 
@@ -34,7 +38,9 @@ public class PGConfig {
             catch (NumberFormatException nfe) { continue; }
         }
 
-        return config.getLong("protection.limit." + nearest, 0);
+        // 明示的な既定値を渡さないことで、キー欠落時に Bukkit が
+        // 同梱 config.yml のデフォルト値を参照できる（黙って 0 にならない）。
+        return config.getLong("protection.limit." + nearest);
     }
 
     public static boolean isFlagDisabled(GuardFlags flag) {
