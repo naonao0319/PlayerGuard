@@ -34,6 +34,17 @@ WorldGuard を用いた、プレイヤー向けの土地保護プラグインで
 2. `/claim` を実行して領域を作成します。
 3. 作成した領域の中で `/pg` を実行し、フラグやメンバーを GUI から管理します。
 
+## Demo
+
+[![PlayerGuard Demo](images/ryouiki.png)](https://github.com/user-attachments/assets/7450c840-a21f-4111-987a-8a4f7513b290)
+
+`/claim`、`/pg`、メンバー管理、貸出、訪問者ログ、領域一覧GUIの流れを確認できます。
+
+### Screenshots
+
+![領域の管理](images/ryouiki.png)
+![あなたの領域一覧](images/anatanoryouiki.png)
+
 ## 使い方
 
 ### 領域の保護
