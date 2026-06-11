@@ -20,8 +20,7 @@ public class PlayerGuardAdminCommand implements CommandExecutor, TabCompleter {
     private final SubCommandManager manager = new SubCommandManager();
 
     public PlayerGuardAdminCommand() {
-        manager.register("deleteall", new DeleteAllCommand());
-        manager.register("deletesection", new DeleteSectionCommand());
+        manager.register("delete", new DeleteCommand());
         manager.register("expand", new ExpandCommand());
         manager.register("lookup", new LookupSectionCommand());
         manager.register("reload", new ReloadCommand());

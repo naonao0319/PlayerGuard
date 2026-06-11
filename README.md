@@ -104,9 +104,21 @@ GUI の「フラグ設定」から、各項目を **許可 → 拒否 → 設定
 | `/pg transfer <player>` | `give` | 領域を譲渡（相手が `/pg confirm` で受理） |
 | `/pg confirm` | `yes` | 移管リクエストを受理 |
 | `/pg info` | `i` | 自分の保護情報を表示 |
-| `/pg-admin` | `/pguard-admin`, `/pg-admin` | 管理者用（deleteall/deletesection/expand/lookup） |
+| `/pg-admin` | `/pguard-admin`, `/pg-admin` | 管理者用（delete/expand/lookup/reload） |
 
 > 領域の譲渡は、譲渡先プレイヤーに届くリクエストを相手自身が `/pg confirm` で受理して初めて完了します。受理後、その領域は譲渡先の保護量に加算されます。
+
+### 管理者コマンド（`/pg-admin`）
+別名: `/pguard-admin`, `/pg-admin`。既定で OP のみ実行可能です。
+
+| サブコマンド | 説明 |
+|---|---|
+| `delete <領域ID>` | 現在いるワールドの該当IDの保護領域を1つ削除（実行後 `/pg confirm` で確定）。プレイヤー専用 |
+| `expand <player> <n>` | 対象プレイヤーの保護できる総体積の上限を `n` だけ拡張 |
+| `lookup [<領域ID>]` | IDを指定すると全ワールドを横断検索し、ワールド名・オーナー・座標・メンバーを表示。ID省略時は金の斧で選択した範囲の保護領域を表示 |
+| `reload` | 設定（config.yml）を再読み込み |
+
+> 領域IDは `/pg info` や WorldGuard の `/rg info` で確認できます。`delete` と `lookup` はタブ補完で領域IDの候補を表示します（`delete` は現在ワールド、`lookup` は全ワールド）。
 
 ## 設定（config.yml）
 - `protection.limit` … プレイ日数に応じた保護できる総体積の上限（段階制）。キー=プレイ日数、値=その日数以降の上限。プレイ日数以下で最も近いキーが採用される。既定は 0〜7日（30000〜100000）。8日目以降は `8: 110000` のように行を追記するだけで拡張できる

@@ -38,7 +38,7 @@ commands:
   playerguard-admin:
     aliases: [pguard-admin, pg-admin]
     description: "Admin command"
-    usage: "/<command> (deleteall|deletesection|expand|lookup)"
+    usage: "/<command> (delete <id>|expand <player> <n>|lookup [<id>]|reload)"
     permission: playerguard.command.admin
 
 permissions:
@@ -55,8 +55,8 @@ permissions:
 
   playerguard.command.admin:
     children:
+      - playerguard.command.admin.delete
       - playerguard.command.admin.expand
       - playerguard.command.admin.lookup
-      - playerguard.command.admin.deleteall
-      - playerguard.command.admin.deletesection
+      - playerguard.command.admin.reload
     default: op
