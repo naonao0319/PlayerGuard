@@ -36,9 +36,12 @@ public class ExpandCommand extends SubCommand {
             return true;
         }
 
-        target.getPersistentDataContainer().set(
-                new NamespacedKey(PlayerGuard.getInstance(), "limit-extends"),
-                PersistentDataType.LONG, expand
+        final long expandValue = expand;
+        PlayerGuard.getInstance().getScheduler().runOnEntity(target, () ->
+                target.getPersistentDataContainer().set(
+                        new NamespacedKey(PlayerGuard.getInstance(), "limit-extends"),
+                        PersistentDataType.LONG, expandValue
+                )
         );
         sender.sendMessage(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "プレイヤーの保護制限を設定しました。");
 

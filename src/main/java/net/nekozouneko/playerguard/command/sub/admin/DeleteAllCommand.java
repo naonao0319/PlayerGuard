@@ -29,21 +29,23 @@ public class DeleteAllCommand extends SubCommand {
 
         RegionContainer rc = WorldGuard.getInstance().getPlatform().getRegionContainer();
 
-        ConfirmCommand.addConfirm(uuid, () -> {
-            rc.getLoaded().forEach(rm ->
-                    rm.getRegions().values().stream()
-                        .filter(pr -> !(pr instanceof GlobalProtectedRegion))
-                        .filter(pr -> StateFlag.test(pr.getFlag(PlayerGuard.getGuardRegisteredFlag())))
-                        .forEach(pr -> {
-                            rm.removeRegion(pr.getId());
-                            sender.sendMessage(String.format(
-                                    ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "保護領域「%s」を削除しました。", pr.getId()
-                            ));
-                        })
-            );
+        ConfirmCommand.addConfirm(uuid, () ->
+            PlayerGuard.getInstance().getScheduler().runGlobal(() -> {
+                rc.getLoaded().forEach(rm ->
+                        rm.getRegions().values().stream()
+                            .filter(pr -> !(pr instanceof GlobalProtectedRegion))
+                            .filter(pr -> StateFlag.test(pr.getFlag(PlayerGuard.getGuardRegisteredFlag())))
+                            .forEach(pr -> {
+                                rm.removeRegion(pr.getId());
+                                sender.sendMessage(String.format(
+                                        ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "保護領域「%s」を削除しました。", pr.getId()
+                                ));
+                            })
+                );
 
-            sender.sendMessage(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "PlayerGuardに登録された保護領域の削除が完了しました。");
-        });
+                sender.sendMessage(ChatColor.DARK_GREEN + "■ " + ChatColor.GREEN + "PlayerGuardに登録された保護領域の削除が完了しました。");
+            })
+        );
 
         sender.sendMessage(ChatColor.GOLD + "■ " + ChatColor.YELLOW + "削除するには/playerguard confirmを実行してください。");
 

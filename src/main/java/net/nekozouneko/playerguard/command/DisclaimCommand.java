@@ -72,13 +72,15 @@ public class DisclaimCommand implements CommandExecutor, TabCompleter {
 
         final RegionManager manager = rm;
         final ProtectedRegion region = pr;
-        ConfirmCommand.addConfirm(p.getUniqueId(), () -> {
-            if (PlayerGuard.getInstance().getVisitorLogService() != null)
-                PlayerGuard.getInstance().getVisitorLogService().clearByRegionId(region.getId());
-            manager.removeRegion(region.getId());
+        ConfirmCommand.addConfirm(p.getUniqueId(), () ->
+            PlayerGuard.getInstance().getScheduler().runGlobal(() -> {
+                if (PlayerGuard.getInstance().getVisitorLogService() != null)
+                    PlayerGuard.getInstance().getVisitorLogService().clearByRegionId(region.getId());
+                manager.removeRegion(region.getId());
 
-            sender.sendMessage(PGMessages.success("保護領域 %s を削除しました。", PGMessages.highlight(region.getId())));
-        });
+                sender.sendMessage(PGMessages.success("保護領域 %s を削除しました。", PGMessages.highlight(region.getId())));
+            })
+        );
         sender.sendMessage(PGMessages.warn("削除を確定するには %s を実行してください。", PGMessages.highlight("/pg confirm")));
 
         return true;

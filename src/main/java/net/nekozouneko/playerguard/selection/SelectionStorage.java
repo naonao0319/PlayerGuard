@@ -6,10 +6,11 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SelectionStorage {
 
-    private final Map<UUID, CuboidRegion> selection = new HashMap<>();
+    private final Map<UUID, CuboidRegion> selection = new ConcurrentHashMap<>();
 
     public void clear() {
         selection.clear();

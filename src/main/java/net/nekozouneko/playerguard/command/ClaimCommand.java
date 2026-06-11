@@ -120,14 +120,17 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        rm.addRegion(protect);
-        ss.clear(p.getUniqueId());
+        final String regionId = id;
+        PlayerGuard.getInstance().getScheduler().runGlobal(() -> {
+            rm.addRegion(protect);
+            ss.clear(p.getUniqueId());
 
-        p.sendMessage(PGMessages.success(
-                "保護領域 %s を作成しました。残り保護量: %s ブロック",
-                PGMessages.highlight(id),
-                PGMessages.highlight(limit - (used + protect.volume()))
-        ));
+            p.sendMessage(PGMessages.success(
+                    "保護領域 %s を作成しました。残り保護量: %s ブロック",
+                    PGMessages.highlight(regionId),
+                    PGMessages.highlight(limit - (used + protect.volume()))
+            ));
+        });
 
         return true;
     }
